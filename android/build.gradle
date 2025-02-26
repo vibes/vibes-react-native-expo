@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+
+group = 'expo.modules.vibesreactnativeexpo'
+version = '0.1.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+  useDefaultAndroidSdkVersions()
+} else {
+  buildscript {
+    ext.safeExtGet = { prop, fallback ->
+      rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+    repositories {
+      google()
+      mavenCentral()
+      maven {
+        url "https://maven.pkg.github.com/vibes/android-sdk-repository"
+        credentials {
+          username = System.getenv("VIBES_GITHUB_USERNAME") ?: ""
+          password = System.getenv("VIBES_GITHUB_PASSWORD") ?: ""
+        }
+      }
+    }
+  }
+  project.android {
+    compileSdkVersion safeExtGet("compileSdkVersion", 34)
+    defaultConfig {
+      minSdkVersion safeExtGet("minSdkVersion", 21)
+      targetSdkVersion safeExtGet("targetSdkVersion", 34)
+    }
+  }
+}
+
+android {
+  namespace "expo.modules.vibesreactnativeexpo"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  implementation "com.vibes.vibes:vibes:4.12.1"
+}

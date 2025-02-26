@@ -1,0 +1,17 @@
+{
+  "platforms": [
+    "apple",
+    "android",
+    "web"
+  ],
+  "apple": {
+    "modules": [
+      "VibesReactNativeExpoModule"
+    ]
+  },
+  "android": {
+    "modules": [
+      "expo.modules.vibesreactnativeexpo.VibesReactNativeExpoModule"
+    ]
+  }
+}

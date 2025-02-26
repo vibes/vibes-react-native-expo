@@ -1,0 +1,14 @@
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        
+        maven {
+            url "https://maven.pkg.github.com/vibes/android-sdk-repository"
+            credentials {
+                username = System.getenv("VIBES_GITHUB_USERNAME") ?: ""
+                password = System.getenv("VIBES_GITHUB_PASSWORD") ?: ""
+            }
+        }
+    }
+}
