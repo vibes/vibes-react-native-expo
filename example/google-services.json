@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "403942759293",
+    "project_id": "react-native-sample-app-d9c22",
+    "storage_bucket": "react-native-sample-app-d9c22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:403942759293:android:0fa1496bfabc460e168a14",
+        "android_client_info": {
+          "package_name": "com.vibes.push.test.rn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "403942759293-565tles4t45vab77g6jhsfibg2s3efke.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vibes.push.test.rn",
+            "certificate_hash": "c875c47d505903b428137f1ae998e8d16fa76c55"
+          }
+        },
+        {
+          "client_id": "403942759293-t3snmcav7l6kmfqm0qc2abcp0j6j2fqh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vibes.push.test.rn",
+            "certificate_hash": "fd23f88a6330726d9b5f581c07db7fd88bf966b4"
+          }
+        },
+        {
+          "client_id": "403942759293-thqrmejarp1i9nmg7ngcv6oo39v7kun7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAiZO68HQlscjIBG4pTgogLWaGGJuCN9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "403942759293-thqrmejarp1i9nmg7ngcv6oo39v7kun7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

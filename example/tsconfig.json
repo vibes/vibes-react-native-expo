@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "vibes-react-native-expo": ["../src/index"],
+      "vibes-react-native-expo/*": ["../src/*"]
+    }
+  }
+}

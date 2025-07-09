@@ -1,0 +1,678 @@
+# Vibes SDK - Android Installation Guide (Managed Workflow)
+
+
+This guide provides step-by-step instructions for installing and configuring the Vibes SDK in your Android React Native/Expo application using **managed workflow** with **custom development build** and Expo 51.
+
+
+The Vibes SDK for Android is distributed as an **AAR (Android Archive)** file, which is a binary library format that contains compiled Android code, resources, and manifest entries. AAR files are automatically included in your app during the build process through the Expo plugin system.
+
+
+**Why AAR files don't require credentials:**
+- AAR files are **pre-compiled libraries** that contain the Vibes SDK's native Android code
+- They are **stateless** - they don't store any credentials or sensitive information
+- Authentication and configuration are handled at **runtime** through your app's configuration (via `androidAppId` and `appUrl` parameters)
+- The AAR file only provides the **native interface** - actual API calls and authentication happen when your app runs and connects to Vibes servers using your configured credentials
+
+
+
+
+##  Prerequisites
+
+
+Before you begin, ensure you have the following:
+
+
+- **Expo CLI** installed globally: `npm install -g @expo/cli`
+- **EAS CLI** installed: `npm install -g eas-cli`
+- **Expo account** (free or paid tier at [expo.dev](https://expo.dev))
+- **Node.js** and **npm** or **yarn**
+- **Java Development Kit (JDK)** 11 or higher
+- **Android SDK** with API level 21+ (Android 5.0+)
+
+
+## Installation Steps
+
+
+### 1. Install the Package
+
+
+Add the Vibes SDK package to your project dependencies:
+
+
+```bash
+npm install vibes-react-native-expo
+# or
+yarn add vibes-react-native-expo
+```
+
+
+### 2. Configure the Plugin
+
+
+Add the Vibes plugin configuration to your `app.config.ts`  file:
+
+
+```typescript
+import { ExpoConfig } from "expo/config";
+
+
+export default {
+ expo: {
+   // ... other expo config
+   plugins: [
+     [
+       "vibes-react-native-expo",
+       {
+         androidAppId: process.env.ANDROID_APP_ID, // Required
+         appUrl: process.env.VIBES_API_URL, // Optional, defaults to production
+       },
+     ],
+   ],
+   android: {
+     package: "com.yourcompany.yourapp",
+     // ... other android config
+   },
+ },
+};
+```
+
+
+### 3. Environment Variables 
+
+
+Create a `.env` file in your project root and add your Vibes credentials:
+
+
+```env
+ANDROID_APP_ID=your-android-app-id-here
+VIBES_API_URL=https://your-vibes-api-url.com/mobile_apps
+```
+
+
+Then update your `app.config.ts`:
+
+
+```typescript
+export default {
+ expo: {
+   plugins: [
+     [
+       "vibes-react-native-expo",
+       {
+         androidAppId: process.env.ANDROID_APP_ID,
+         appUrl: process.env.VIBES_API_URL,
+       },
+     ],
+   ],
+ },
+};
+```
+
+
+### 4. Configure EAS Build
+
+
+Create or update your `eas.json` file to include development builds:
+
+
+```json
+{
+ "cli": {
+   "version": ">= 5.9.1"
+ },
+ "build": {
+   "development": {
+     "developmentClient": true,
+     "distribution": "internal",
+     "android": {
+       "gradleCommand": ":app:assembleDebug"
+     }
+   },
+   "preview": {
+     "distribution": "internal",
+     "android": {
+       "buildType": "apk"
+     }
+   },
+   "production": {
+     "android": {
+       "buildType": "aab"
+     }
+   }
+ },
+ "submit": {
+   "production": {}
+ }
+}
+```
+
+
+### 5. Create Development Build
+
+
+Build a custom development client that includes the Vibes SDK:
+
+
+```bash
+
+
+# For cloud build (recommended)
+eas build --profile development --platform android
+```
+
+
+This will:
+- Create a custom development client with Vibes SDK included
+- Apply the plugin configuration automatically
+- Generate an APK file you can install on your device
+
+
+## Android Configuration Details
+
+
+### Automatic Configuration
+
+
+The plugin automatically configures the native Android files during the EAS build process. You don't need to manually edit these files:
+
+
+#### AndroidManifest.xml
+The plugin automatically adds these permissions and metadata:
+
+
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.VIBRATE"/>
+<!-- ... other permissions -->
+
+
+<application>
+ <meta-data android:name="vibes_app_id" android:value="${vibesAppId}"/>
+ <meta-data android:name="vibes_api_url" android:value="${vibesAppUrl}"/>
+ <!-- ... other metadata -->
+</application>
+```
+
+
+#### build.gradle
+The plugin automatically adds manifest placeholders:
+
+
+```gradle
+android {
+ defaultConfig {
+   manifestPlaceholders = [
+     vibesAppId: "your-app-id",
+     vibesAppUrl: "your-api-url"
+   ]
+ }
+}
+```
+
+
+### Development Workflow
+
+
+1. **Install the development build** on your device using QR code
+2. **Start the development server**: `npx expo start --dev-client`
+3. **Open the app** on your device - it will connect to your development server
+
+
+## Minimum Requirements
+
+
+- **Android API Level**: 21+ (Android 5.0 Lollipop)
+- **Target SDK**: 34 (Android 14)
+- **Compile SDK**: 34
+- **Gradle Version**: 7.0+
+
+
+## Verification
+
+
+After installation, verify the setup by checking:
+
+
+1. **Plugin Configuration**: Ensure the plugin is listed in your `app.config.ts`
+2. **Development Build**: Successfully create and install the development build
+3. **App Connection**: Verify the app connects to your development server
+4. **Vibes Integration**: Test that Vibes SDK functions work in your app
+
+
+## Warnings
+
+**These warnings are not blockers for a successful build.** But you're seeing signs that:
+
+- Packages listed below used by Expo and its dependencies are **old or unmaintained**.
+- You may want to **watch them** in the future if any updates are released.
+
+### Grouped by Package
+
+#### Legacy or Abandoned Packages
+
+| Package | Reason |
+|---------|--------|
+| inflight@1.0.6 | Leaks memory; no longer supported |
+| osenv@0.1.5 | Deprecated, no active support |
+| sudo-prompt@9.2.1 | Deprecated tool for elevated permissions |
+| @babel/plugin-proposal-* | These were used when the JS features were still experimental. Since the features are now part of the ECMAScript standard, transform plugins are preferred. |
+| @xmldom/xmldom@0.7.13 | Often used indirectly via tooling (e.g., XML parsers in PDF generators or bundlers) |
+| rimraf@2.x/3.x | Old version |
+| glob@7.x | Old version |
+| querystring@0.2.1 | Old version |
+
+### Why This Happens
+
+Those packages are pulled in by Expo and it's dependencies during the standard build process.
+
+### Common Warnings
+
+<details>
+<summary>APP BUILD LOGS</summary>
+
+```
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated sudo-prompt@9.2.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated querystring@0.2.1: The querystring API is considered Legacy. new code should use the URLSearchParams API instead.
+npm warn deprecated osenv@0.1.5: This package is no longer supported.
+npm warn deprecated @xmldom/xmldom@0.7.13: this version is no longer supported, please update to at least 0.8.*
+npm warn deprecated @babel/plugin-proposal-optional-catch-binding@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-catch-binding instead.
+npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+npm warn deprecated @babel/plugin-proposal-logical-assignment-operators@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-logical-assignment-operators instead.
+npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+npm warn deprecated @babel/plugin-proposal-object-rest-spread@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-object-rest-spread instead.
+npm warn deprecated @babel/plugin-proposal-async-generator-functions@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-async-generator-functions instead.
+npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@7.1.6: Glob versions prior to v9 are no longer supported
+```
+
+</details>
+
+## Troubleshooting
+
+
+### Common Issues
+
+
+#### 1. Build Errors
+If you encounter EAS build errors:
+```bash
+# Check build logs
+eas build:list
+
+
+# Retry the build
+eas build --profile development --platform android --clear-cache
+
+
+#### 2. Development Client Issues
+If the development client doesn't work:
+```bash
+# Rebuild the development client
+eas build --profile development --platform android
+
+
+# Clear Expo cache
+npx expo start --clear
+
+
+# Check device connection
+npx expo start --dev-client --tunnel
+```
+
+
+#### 3. Plugin Not Applied
+If the Vibes plugin isn't working:
+```bash
+# Verify plugin configuration in app.config.ts
+# Rebuild the development client
+eas build --profile development --platform android --clear-cache
+```
+
+
+#### 4. Environment Variables Not Working
+Make sure your `.env` file is in the project root and variables start with `EXPO_PUBLIC_`. For EAS builds, you can also set environment variables in `eas.json`.
+
+
+### Debug Steps
+
+
+1. **Check EAS build logs** for any configuration errors
+2. **Verify plugin configuration** in your `app.config.ts`
+3. **Ensure environment variables** are properly set
+4. **Test development client** connection to your development server
+5. **Check Vibes SDK initialization** in your app code
+
+
+## Next Steps
+
+
+After successful installation:
+1. **Test the development build** - Install the APK on your device and verify it connects to your development server
+2. **Initialize Vibes SDK** in your app code using the examples in the Usage Guide below
+3. **Configure your Vibes dashboard** - Set up your app in the Vibes platform and get your credentials
+4. **Test basic functionality** - Register device, associate user, and test push notifications
+5. **Create production build** when ready to deploy: `eas build --profile production --platform android`
+
+
+
+
+## Usage Guide
+The Vibes SDK provides a simple interface for integrating push notifications and messaging features into your React Native app. After installation, you can import the required functions and start using the SDK immediately.
+
+
+The main functions you'll use are:
+- `registerDevice()` - Register the device with Vibes
+- `registerPush()` - Enable push notifications
+- `associatePerson()` - Link a user to the device
+- `getPerson()` - Get current user information
+- `fetchInboxMessages()` - Retrieve inbox messages
+
+
+
+
+### Importing the SDK
+
+
+```typescript
+// Import the entire module
+import ExpoVibesSDK from 'vibes-react-native-expo';
+```
+
+
+### Basic Setup and Initialization
+
+
+**Important:** You should **not** call `registerDevice()` and then immediately call `registerPush()` without waiting for confirmation that the device registration is complete. The promise returned by `registerDevice()` only means the native registration function was called, not that the device is actually registered. You should wait for a confirmation event or callback (such as `didRegisterDevice` or `didRegisterPush`) before proceeding to the next step.
+
+
+A correct implementation should be based on events/callbacks. For example:
+
+
+```typescript
+import { useEffect } from 'react';
+import ExpoVibesSDK from 'vibes-react-native-expo';
+
+
+useEffect(() => {
+ const initializeVibes = async () => {
+   try {
+     await ExpoVibesSDK.registerDevice();
+     ExpoVibesSDK.onDeviceRegistered(async () => {
+       await ExpoVibesSDK.registerPush();
+     });
+   } catch (error) {
+     // Handle error
+   }
+ };
+ initializeVibes();
+}, []);
+```
+
+
+### User Management
+
+
+```typescript
+import ExpoVibesSDK from 'vibes-react-native-expo';
+
+
+// Associate a user with the device
+const associateUser = async (userId: string) => {
+ try {
+   await ExpoVibesSDK.associatePerson(userId);
+   console.log('User associated successfully');
+ } catch (error) {
+   console.error('Failed to associate user:', error);
+ }
+};
+
+
+// Get current user information
+const getCurrentUser = async () => {
+ try {
+   const person = await ExpoVibesSDK.getPerson();
+   console.log('Current user:', person);
+   return person;
+ } catch (error) {
+   console.error('Failed to get user:', error);
+   return null;
+ }
+};
+```
+
+
+### Inbox Messages
+
+
+```typescript
+import ExpoVibesSDK from 'vibes-react-native-expo';
+
+
+// Fetch all inbox messages
+const loadInboxMessages = async () => {
+ try {
+   const messages = await ExpoVibesSDK.fetchInboxMessages();
+   console.log('Inbox messages:', messages);
+   return messages;
+ } catch (error) {
+   console.error('Failed to fetch messages:', error);
+   return [];
+ }
+};
+
+
+// Fetch specific message
+const loadMessage = async (messageId: string) => {
+ try {
+   const message = await ExpoVibesSDK.fetchInboxMessage(messageId);
+   console.log('Message details:', message);
+   return message;
+ } catch (error) {
+   console.error('Failed to fetch message:', error);
+   return null;
+ }
+};
+
+
+// Mark message as read
+const markAsRead = async (messageId: string) => {
+ try {
+   await ExpoVibesSDK.markInboxMessageAsRead(messageId);
+   console.log('Message marked as read');
+ } catch (error) {
+   console.error('Failed to mark message as read:', error);
+ }
+};
+
+
+// Expire message
+const expireMessage = async (messageId: string) => {
+ try {
+   await ExpoVibesSDK.expireInboxMessage(messageId);
+   console.log('Message expired');
+ } catch (error) {
+   console.error('Failed to expire message:', error);
+ }
+};
+```
+
+
+### Device Updates
+
+
+```typescript
+import ExpoVibesSDK from 'vibes-react-native-expo';
+
+
+// Update device location and credentials
+const updateDeviceInfo = async (latitude: number, longitude: number) => {
+ try {
+   await ExpoVibesSDK.updateDevice(true, latitude, longitude);
+   console.log('Device updated successfully');
+ } catch (error) {
+   console.error('Failed to update device:', error);
+ }
+};
+```
+
+
+### Complete Example App
+
+
+```typescript
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button, Alert, ScrollView } from 'react-native';
+import ExpoVibesSDK from 'vibes-react-native-expo';
+
+
+export default function VibesExampleApp() {
+ const [user, setUser] = useState<string | null>(null);
+ const [messages, setMessages] = useState<any[]>([]);
+
+
+ useEffect(() => {
+   initializeVibes();
+ }, []);
+
+
+ const initializeVibes = async () => {
+   try {
+     await ExpoVibesSDK.registerDevice();
+     await ExpoVibesSDK.registerPush();
+     Alert.alert('Success', 'Vibes SDK initialized!');
+   } catch (error) {
+     Alert.alert('Error', 'Failed to initialize Vibes SDK');
+   }
+ };
+
+
+ const handleLogin = async () => {
+   try {
+     await ExpoVibesSDK.associatePerson('user123');
+     const currentUser = await ExpoVibesSDK.getPerson();
+     setUser(currentUser);
+     Alert.alert('Success', 'User logged in!');
+   } catch (error) {
+     Alert.alert('Error', 'Login failed');
+   }
+ };
+
+
+ const loadMessages = async () => {
+   try {
+     const inboxMessages = await ExpoVibesSDK.fetchInboxMessages();
+     setMessages(inboxMessages);
+   } catch (error) {
+     Alert.alert('Error', 'Failed to load messages');
+   }
+ };
+
+
+ const markMessageRead = async (messageId: string) => {
+   try {
+     await ExpoVibesSDK.markInboxMessageAsRead(messageId);
+     Alert.alert('Success', 'Message marked as read');
+     loadMessages(); // Refresh messages
+   } catch (error) {
+     Alert.alert('Error', 'Failed to mark message as read');
+   }
+ };
+
+
+ return (
+   <ScrollView style={{ flex: 1, padding: 20 }}>
+     <Text style={{ fontSize: 24, marginBottom: 20 }}>Vibes SDK Example</Text>
+    
+     <Button title="Login User" onPress={handleLogin} />
+    
+     {user && (
+       <Text style={{ marginVertical: 10 }}>Logged in as: {user}</Text>
+     )}
+    
+     <Button title="Load Messages" onPress={loadMessages} />
+    
+     {messages.map((message, index) => (
+       <View key={index} style={{ marginVertical: 10, padding: 10, backgroundColor: '#f0f0f0' }}>
+         <Text>{message.title || 'No title'}</Text>
+         <Button
+           title="Mark as Read"
+           onPress={() => markMessageRead(message.id)}
+         />
+       </View>
+     ))}
+   </ScrollView>
+ );
+}
+```
+
+
+### Available Functions
+
+
+| Function | Description | Parameters | Returns |
+|----------|-------------|------------|---------|
+| `getSDKVersion()` | Get Vibes SDK version | None | Promise<string> |
+| `registerDevice()` | Register device with Vibes | None | Promise<string> |
+| `unregisterDevice()` | Unregister device | None | Promise<string> |
+| `registerPush()` | Register for push notifications | None | Promise<string> |
+| `unregisterPush()` | Unregister from push notifications | None | Promise<string> |
+| `associatePerson(externalPersonId)` | Associate user with device | `string` | void |
+| `updateDevice(updateCredentials, lat, lon)` | Update device info | `boolean, number, number` | void |
+| `getPerson()` | Get current user information | None | Promise<string> |
+| `fetchInboxMessages()` | Get all inbox messages | None | Promise<Array> |
+| `fetchInboxMessage(messageId)` | Get specific message | `string` | Promise<Object> |
+| `markInboxMessageAsRead(messageId)` | Mark message as read | `string` | Promise<string> |
+| `expireInboxMessage(messageId)` | Expire message | `string` | Promise<string> |
+| `onInboxMessageOpen(messageId)` | Track message open | `string` | Promise<string> |
+| `onInboxMessagesFetched()` | Track messages fetched | None | Promise<string> |
+| `getVibesDeviceInfo()` | Get device information | None | Promise<any> |
+| `setValueAsync(value)` | Set value and trigger onChange event | `string` | Promise<void> |
+
+
+
+
+## Additional Resources
+
+
+- [Vibes SDK Documentation](https://docs.vibes.com)
+- [Expo Documentation](https://docs.expo.dev)
+- [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
+- [Development Builds Guide](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Expo Managed Workflow](https://docs.expo.dev/introduction/managed-vs-bare/)
+
+
+##  Support
+
+
+If you encounter issues during installation:
+1. Check the [troubleshooting section](#-troubleshooting) above
+2. Review the [example project](./example) for reference
+3. Contact Vibes support or create an issue in the repository
+
+
+---
+
+
+**Note**: This guide is specifically for **Expo Managed Workflow** with **Custom Development Builds** for Expo 51. This approach allows you to use native modules like Vibes SDK while maintaining the benefits of managed workflow. For bare React Native projects, see the [bare workflow documentation](https://docs.expo.dev/introduction/managed-vs-bare/).
+
+
+# Environment Variables
+
+
+**In `app.config.ts`, environment variables do NOT need the `EXPO_PUBLIC_` prefix, because the config is loaded at build time, not at runtime.**
+
+
+In your `app.config.ts`, you can reference variables directly (e.g., `process.env.ANDROID_APP_ID`).
+
+
+For cloud builds, it is recommended to use **EAS Secrets** to securely store sensitive variables. **Note:** EAS Secrets are only available in cloud builds. 
+
+
+> **Best practice:** Use cloud builds whenever possible and always verify that your environment variables are correctly configured and passed to the plugin. Test the cloud build to ensure the configuration works as expected.

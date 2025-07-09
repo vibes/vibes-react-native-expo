@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["ExpoVibesSDKModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.vibessdk.ExpoVibesSDKModule"]
+  }
+}
