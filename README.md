@@ -24,6 +24,7 @@ Before you begin, ensure you have the following:
 
 - **Expo CLI** installed globally: `npm install -g @expo/cli`
 - **EAS CLI** installed: `npm install -g eas-cli`
+- **Firebase** `npm install @react-native-firebase/app @react-native-firebase/messaging`
 - **Expo account** (free or paid tier at [expo.dev](https://expo.dev))
 - **Node.js** and **npm** or **yarn**
 - **Java Development Kit (JDK)** 11 or higher
@@ -63,8 +64,8 @@ export default {
      [
        "vibes-react-native-expo",
        {
-         androidAppId: process.env.ANDROID_APP_ID, // Required
-         appUrl: process.env.VIBES_API_URL, // Optional, defaults to production
+         androidAppId: process.env.ANDROID_APP_ID, 
+         appUrl: process.env.VIBES_API_URL, 
        },
      ],
    ],
@@ -394,24 +395,42 @@ import ExpoVibesSDK from 'vibes-react-native-expo';
 
 A correct implementation should be based on events/callbacks. For example:
 
-
 ```typescript
 import { useEffect } from 'react';
 import ExpoVibesSDK from 'vibes-react-native-expo';
 
-
 useEffect(() => {
- const initializeVibes = async () => {
-   try {
-     await ExpoVibesSDK.registerDevice();
-     ExpoVibesSDK.onDeviceRegistered(async () => {
-       await ExpoVibesSDK.registerPush();
-     });
-   } catch (error) {
-     // Handle error
-   }
- };
- initializeVibes();
+  // Example: listening to onChange event
+  const subscription = ExpoVibesSDK.addListener('onChange', (event) => {
+    console.log('Value changed:', event.value);
+  });
+
+  // Example: registering device and handling event
+  ExpoVibesSDK.registerDevice().then((deviceId) => {
+    console.log('Device registered:', deviceId);
+  });
+
+  // Example: registering push and handling event
+  ExpoVibesSDK.registerPush().then((result) => {
+    console.log('Push registered:', result);
+  });
+
+  // Example: listening to onGetPerson event
+  const personSub = ExpoVibesSDK.addListener('onGetPerson', (event) => {
+    console.log('Person event:', event.person);
+  });
+
+  // Example: listening to onFetchInboxMessages event
+  const inboxSub = ExpoVibesSDK.addListener('onFetchInboxMessages', (event) => {
+    console.log('Inbox messages event:', event.messages);
+  });
+
+  // Cleaning up subscriptions on unmount
+  return () => {
+    subscription.remove();
+    personSub.remove();
+    inboxSub.remove();
+  };
 }, []);
 ```
 
@@ -636,7 +655,95 @@ export default function VibesExampleApp() {
 | `setValueAsync(value)` | Set value and trigger onChange event | `string` | Promise<void> |
 
 
+## Full SDK API Usage Examples
 
+Below are examples for all additional SDK functions available in the demo app:
+
+```typescript
+// Get device info
+const getDeviceInfo = async () => {
+  try {
+    const info = await ExpoVibesSDK.getVibesDeviceInfo();
+    console.log('Device info:', info);
+    return info;
+  } catch (error) {
+    console.error('Failed to get device info:', error);
+    return null;
+  }
+};
+
+// Unregister device
+const unregisterDevice = async () => {
+  try {
+    const result = await ExpoVibesSDK.unregisterDevice();
+    console.log('Device unregistered:', result);
+  } catch (error) {
+    console.error('Failed to unregister device:', error);
+  }
+};
+
+// Unregister push
+const unregisterPush = async () => {
+  try {
+    const result = await ExpoVibesSDK.unregisterPush();
+    console.log('Push unregistered:', result);
+  } catch (error) {
+    console.error('Failed to unregister push:', error);
+  }
+};
+
+// Open inbox message (track open event)
+const openInboxMessage = async (messageId: string) => {
+  try {
+    const result = await ExpoVibesSDK.onInboxMessageOpen(messageId);
+    console.log('Inbox message opened:', result);
+  } catch (error) {
+    console.error('Failed to open inbox message:', error);
+  }
+};
+
+// Track inbox messages fetched event
+const trackInboxMessagesFetched = async () => {
+  try {
+    const result = await ExpoVibesSDK.onInboxMessagesFetched();
+    console.log('Inbox messages fetched event:', result);
+  } catch (error) {
+    console.error('Failed to track inbox messages fetched:', error);
+  }
+};
+
+// Set value async (test event)
+const setValue = async (value: string) => {
+  try {
+    await ExpoVibesSDK.setValueAsync(value);
+    console.log('Value set:', value);
+  } catch (error) {
+    console.error('Failed to set value:', error);
+  }
+};
+
+// Initialize Vibes SDK manually
+const initializeVibes = async () => {
+  try {
+    await ExpoVibesSDK.initializeVibes();
+    console.log('Vibes SDK initialized');
+  } catch (error) {
+    console.error('Failed to initialize Vibes SDK:', error);
+  }
+};
+
+// Get SDK version
+const getSdkVersion = async () => {
+  try {
+    const version = await ExpoVibesSDK.getSDKVersion();
+    console.log('SDK Version:', version);
+    return version;
+  } catch (error) {
+    console.error('Failed to get SDK version:', error);
+    return null;
+  }
+};
+```
 
 ## Additional Resources
 

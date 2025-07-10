@@ -29,9 +29,9 @@ const config: ExpoConfig = {
     [
       "vibes-react-native-expo",
       {
-        iosAppId: process.env.PUBLIC_IOS_APP_ID,
-        androidAppId: process.env.PUBLIC_ANDROID_APP_ID,
-        appUrl: process.env.VIBES_API_URL,
+        iosAppId: "3344c960-f53b-43d5-9b3a-2b4498703ef3",
+        androidAppId: "3344c960-f53b-43d5-9b3a-2b4498703ef3",
+        appUrl: "https://public-api-uatus0.vibescm.com/mobile_apps",
       },
     ],
   ],
