@@ -66,7 +66,7 @@ export default {
        "vibes-react-native-expo",
        {
          androidAppId: process.env.ANDROID_APP_ID, 
-         appUrl: process.env.VIBES_API_URL, 
+         appUrl: process.env.APP_URL, 
        },
      ],
    ],
@@ -102,7 +102,7 @@ export default {
        "vibes-react-native-expo",
        {
          androidAppId: process.env.ANDROID_APP_ID,
-         appUrl: process.env.VIBES_API_URL,
+         appUrl: process.env.APP_URL,
        },
      ],
    ],
@@ -128,17 +128,29 @@ Create or update your `eas.json` file to include development builds:
      "distribution": "internal",
      "android": {
        "gradleCommand": ":app:assembleDebug"
+     },
+     "env": {
+       "ANDROID_APP_ID": "$ANDROID_APP_ID",
+       "APP_URL": "$APP_URL"
      }
    },
    "preview": {
      "distribution": "internal",
-     "android": {
+     "android": { 
        "buildType": "apk"
+     },
+     "env": {
+       "ANDROID_APP_ID": "$ANDROID_APP_ID",
+       "APP_URL": "$APP_URL"
      }
    },
    "production": {
      "android": {
        "buildType": "aab"
+     },
+     "env": {
+       "ANDROID_APP_ID": "$ANDROID_APP_ID",
+       "APP_URL": "$APP_URL"
      }
    }
  },
@@ -773,9 +785,23 @@ If you encounter issues during installation:
 
 # Environment Variables
 
-In `app.config.ts`, you can reference environment variables directly using `process.env.VARIABLE_NAME` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
+In `app.config.ts`, you can reference environment variables directly using `process.env.ANDROID_APP_ID` and `process.env.APP_URL` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
 
-**For EAS cloud builds:**
-- Set environment variables in the `env` section of your `eas.json` file (recommended and most common way).
+## Setting Environment Variables for EAS Cloud Build
 
-> **Best practice:** Use `eas.json` to define all environment variables needed for your builds. Use EAS Secrets for sensitive data if you want to keep them out of your repo. Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
+**For EAS Cloud Build:**
+- Set environment variables in the `env` section of your `eas.json` file, referencing secrets using `$ANDROID_APP_ID` and `$APP_URL` (recommended and most secure).
+- Set secrets using the `eas secret:create` command.
+- Do **not** rely on local `.env` files for cloud builds – they are ignored by EAS Cloud Build.
+
+### Setting EAS Secrets
+Set secrets in Expo/EAS Cloud:
+
+```sh
+eas secret:create --name ANDROID_APP_ID --value your-android-app-id
+eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
+```
+
+**Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
+
+> **Note:** For EAS Cloud Build, only variables set in `eas.json` (and referenced as `$SECRET_NAME`) or as EAS Secrets are available at build time. Local `.env` files are ignored by the cloud builder.
