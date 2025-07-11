@@ -81,13 +81,13 @@ export default {
 
 ### 3. Environment Variables 
 
-
+In `app.config.ts`, you can reference environment variables directly using `process.env.ANDROID_APP_ID` and `process.env.APP_URL` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
 Create a `.env` file in your project root and add your Vibes credentials:
 
 
 ```env
 ANDROID_APP_ID=your-android-app-id-here
-VIBES_API_URL=https://your-vibes-api-url.com/mobile_apps
+APP_URL=https://your-vibes-api-url.com/mobile_apps
 ```
 
 
@@ -109,6 +109,22 @@ export default {
  },
 };
 ```
+
+## Setting Environment Variables for EAS Cloud Build
+**For EAS Cloud Build:**
+- Set environment variables in the `env` section of your `eas.json` file, referencing secrets using `$ANDROID_APP_ID` and `$APP_URL` (recommended and most secure).
+- Set secrets using the `eas secret:create` command.
+- Do **not** rely on local `.env` files for cloud builds – they are ignored by EAS Cloud Build.
+
+### Setting EAS Secrets
+Set secrets in Expo/EAS Cloud:
+
+```sh
+eas secret:create --name ANDROID_APP_ID --value your-android-app-id
+eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
+```
+
+**Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
 
 
 ### 4. Configure EAS Build
@@ -348,10 +364,6 @@ If the Vibes plugin isn't working:
 # Rebuild the development client
 eas build --profile development --platform android --clear-cache
 ```
-
-
-#### 4. Environment Variables Not Working
-Make sure your `.env` file is in the project root and variables start with `EXPO_PUBLIC_`. For EAS builds, you can also set environment variables in `eas.json`.
 
 
 ### Debug Steps
@@ -780,28 +792,6 @@ If you encounter issues during installation:
 ---
 
 
-**Note**: This guide is specifically for **Expo Managed Workflow** with **Custom Development Builds** for Expo 51. This approach allows you to use native modules like Vibes SDK while maintaining the benefits of managed workflow. For bare React Native projects, see the [bare workflow documentation](https://docs.expo.dev/introduction/managed-vs-bare/).
+**Note**: This guide is specifically for **Expo Managed Workflow** with **Custom Development Build** for Expo 51. This approach allows you to use native modules like Vibes SDK while maintaining the benefits of managed workflow. For bare React Native projects, see the [bare workflow documentation](https://docs.expo.dev/introduction/managed-vs-bare/).
 
 
-# Environment Variables
-
-In `app.config.ts`, you can reference environment variables directly using `process.env.ANDROID_APP_ID` and `process.env.APP_URL` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
-
-## Setting Environment Variables for EAS Cloud Build
-
-**For EAS Cloud Build:**
-- Set environment variables in the `env` section of your `eas.json` file, referencing secrets using `$ANDROID_APP_ID` and `$APP_URL` (recommended and most secure).
-- Set secrets using the `eas secret:create` command.
-- Do **not** rely on local `.env` files for cloud builds – they are ignored by EAS Cloud Build.
-
-### Setting EAS Secrets
-Set secrets in Expo/EAS Cloud:
-
-```sh
-eas secret:create --name ANDROID_APP_ID --value your-android-app-id
-eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
-```
-
-**Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
-
-> **Note:** For EAS Cloud Build, only variables set in `eas.json` (and referenced as `$SECRET_NAME`) or as EAS Secrets are available at build time. Local `.env` files are ignored by the cloud builder.

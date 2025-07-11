@@ -1,6 +1,6 @@
 {
   "name": "vibes-react-native-expo",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "Expo module for Vibes Android & iOS SDK integration",
   "main": "build/index.js",
   "types": "build/index.d.ts",
