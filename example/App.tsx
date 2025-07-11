@@ -24,7 +24,6 @@ export default function App() {
   const [isLoadingExpireInboxMessage, setIsLoadingExpireInboxMessage] = useState(false);
   const [isLoadingOnInboxMessageOpen, setIsLoadingOnInboxMessageOpen] = useState(false);
   const [isLoadingOnInboxMessagesFetched, setIsLoadingOnInboxMessagesFetched] = useState(false);
-  const [isLoadingSetValueAsync, setIsLoadingSetValueAsync] = useState(false);
   const [isLoadingInitializeVibes, setIsLoadingInitializeVibes] = useState(false);
 
   const [unregisterDeviceStatus, setUnregisterDeviceStatus] = useState("");
@@ -48,8 +47,6 @@ export default function App() {
   const [onInboxMessageOpenId, setOnInboxMessageOpenId] = useState("");
   const [onInboxMessageOpenStatus, setOnInboxMessageOpenStatus] = useState("");
   const [onInboxMessagesFetchedStatus, setOnInboxMessagesFetchedStatus] = useState("");
-  const [setValueAsyncValue, setSetValueAsyncValue] = useState("");
-  const [setValueAsyncStatus, setSetValueAsyncStatus] = useState("");
   const [initializeVibesStatus, setInitializeVibesStatus] = useState("");
 
   const handleGetSDKVersion = async () => {
@@ -242,17 +239,6 @@ export default function App() {
       setOnInboxMessagesFetchedStatus("Fetch event failed: " + String(e));
     } finally {
       setIsLoadingOnInboxMessagesFetched(false);
-    }
-  };
-  const handleSetValueAsync = async () => {
-    try {
-      setIsLoadingSetValueAsync(true);
-      await ExpoVibesSDK.setValueAsync(setValueAsyncValue);
-      setSetValueAsyncStatus("Value set: " + setValueAsyncValue);
-    } catch (e) {
-      setSetValueAsyncStatus("Set value failed: " + String(e));
-    } finally {
-      setIsLoadingSetValueAsync(false);
     }
   };
   const handleInitializeVibes = async () => {
@@ -467,20 +453,6 @@ export default function App() {
             disabled={isLoadingOnInboxMessagesFetched}
           />
           <Text style={styles.statusText}>{onInboxMessagesFetchedStatus}</Text>
-        </Group>
-        <Group name="Set Value Async">
-          <TextInput
-            style={styles.input}
-            placeholder="Value"
-            value={setValueAsyncValue}
-            onChangeText={setSetValueAsyncValue}
-          />
-          <Button
-            title={isLoadingSetValueAsync ? "Loading..." : "Set Value"}
-            onPress={handleSetValueAsync}
-            disabled={isLoadingSetValueAsync || !setValueAsyncValue}
-          />
-          <Text style={styles.statusText}>{setValueAsyncStatus}</Text>
         </Group>
         <Group name="Initialize Vibes">
           <Button

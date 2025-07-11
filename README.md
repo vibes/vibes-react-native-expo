@@ -1,4 +1,4 @@
-# Vibes SDK - Android Installation Guide (Managed Workflow)
+# Vibes SDK - Android Installation Guide (Managed Workflow + Custom Development Build)
 
 
 This guide provides step-by-step instructions for installing and configuring the Vibes SDK in your Android React Native/Expo application using **managed workflow** with **custom development build** and Expo 51.
@@ -24,6 +24,7 @@ Before you begin, ensure you have the following:
 
 - **Expo CLI** installed globally: `npm install -g @expo/cli`
 - **EAS CLI** installed: `npm install -g eas-cli`
+- **React Native** `npm install react-native@0.74.5`
 - **Firebase** `npm install @react-native-firebase/app @react-native-firebase/messaging`
 - **Expo account** (free or paid tier at [expo.dev](https://expo.dev))
 - **Node.js** and **npm** or **yarn**
@@ -772,14 +773,9 @@ If you encounter issues during installation:
 
 # Environment Variables
 
+In `app.config.ts`, you can reference environment variables directly using `process.env.VARIABLE_NAME` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
 
-**In `app.config.ts`, environment variables do NOT need the `EXPO_PUBLIC_` prefix, because the config is loaded at build time, not at runtime.**
+**For EAS cloud builds:**
+- Set environment variables in the `env` section of your `eas.json` file (recommended and most common way).
 
-
-In your `app.config.ts`, you can reference variables directly (e.g., `process.env.ANDROID_APP_ID`).
-
-
-For cloud builds, it is recommended to use **EAS Secrets** to securely store sensitive variables. **Note:** EAS Secrets are only available in cloud builds. 
-
-
-> **Best practice:** Use cloud builds whenever possible and always verify that your environment variables are correctly configured and passed to the plugin. Test the cloud build to ensure the configuration works as expected.
+> **Best practice:** Use `eas.json` to define all environment variables needed for your builds. Use EAS Secrets for sensitive data if you want to keep them out of your repo. Always test your cloud build to ensure variables are passed correctly to your plugin and app config.

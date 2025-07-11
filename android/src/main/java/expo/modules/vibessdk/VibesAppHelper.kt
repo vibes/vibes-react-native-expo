@@ -27,16 +27,40 @@ internal class VibesAppHelper(private val context: Context) {
         get() = context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
             .getString("Vibes.DeviceId", null)
 
+    val latitude: String?
+        get() = context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
+            .getString("Vibes.Latitude", null)
+
+    val longitude: String?
+        get() = context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
+            .getString("Vibes.Longitude", null)
+
     val deviceInfo: Map<String, String>
         get() = mapOf(
             "device_id" to (deviceId ?: ""),
-            "push_token" to (pushToken ?: "")
+            "push_token" to (pushToken ?: ""),
+            "latitude" to (latitude ?: ""),
+            "longitude" to (longitude ?: "")
         )
 
     fun saveString(key: String, value: String) {
         context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
             .edit()
             .putString(key, value)
+            .apply()
+    }
+
+    fun saveLatitude(lat: Double) {
+        context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("Vibes.Latitude", lat.toString())
+            .apply()
+    }
+
+    fun saveLongitude(lon: Double) {
+        context.getSharedPreferences("VibesPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("Vibes.Longitude", lon.toString())
             .apply()
     }
 

@@ -155,6 +155,8 @@ class ExpoVibesSDKModule : Module() {
       Vibes.getInstance().updateDevice(updateCredentials, lat, lon, object : VibesListener<Credential> {
         override fun onSuccess(credential: Credential) {
           Log.d(TAG, "Device updated successfully")
+          appHelper.saveLatitude(lat)
+          appHelper.saveLongitude(lon)
           promise.resolve("Device updated successfully")
         }
         override fun onFailure(errorText: String) {
