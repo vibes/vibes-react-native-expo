@@ -103,6 +103,7 @@ export default {
        {
          androidAppId: process.env.ANDROID_APP_ID,
          appUrl: process.env.APP_URL,
+         iosAppId: process.env.IOS_APP_ID
        },
      ],
    ],
@@ -122,6 +123,7 @@ Set secrets in Expo/EAS Cloud:
 ```sh
 eas secret:create --name ANDROID_APP_ID --value your-android-app-id
 eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
+eas secret:create --name IOS_APP_ID --value your-ios-app-id
 ```
 
 **Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
@@ -145,6 +147,9 @@ Create or update your `eas.json` file to include development builds:
      "android": {
        "gradleCommand": ":app:assembleDebug"
      },
+     "ios": {
+       "buildConfiguration": "Debug"
+     },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
        "APP_URL": "$APP_URL"
@@ -155,6 +160,9 @@ Create or update your `eas.json` file to include development builds:
      "android": { 
        "buildType": "apk"
      },
+     "ios": {
+       "buildConfiguration": "Release"
+     },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
        "APP_URL": "$APP_URL"
@@ -163,6 +171,9 @@ Create or update your `eas.json` file to include development builds:
    "production": {
      "android": {
        "buildType": "aab"
+     },
+     "ios": {
+       "buildConfiguration": "Release"
      },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
@@ -188,13 +199,15 @@ Build a custom development client that includes the Vibes SDK:
 
 # For cloud build (recommended)
 eas build --profile development --platform android
+# For iOS development build
+eas build --profile development --platform ios
 ```
 
 
 This will:
 - Create a custom development client with Vibes SDK included
 - Apply the plugin configuration automatically
-- Generate an APK file you can install on your device
+- Generate an APK file (Android) or IPA file (iOS) you can install on your device
 
 
 ## Android Configuration Details
@@ -240,6 +253,42 @@ android {
 ```
 
 
+## iOS Configuration Details
+
+
+### Automatic Configuration
+
+
+The plugin automatically configures the native iOS files during the EAS build process. You don't need to manually edit these files:
+
+
+#### Info.plist
+The plugin automatically adds these keys:
+
+
+```xml
+<key>VibesAppId</key>
+<string>$(VIBES_APP_ID)</string>
+<key>VibesApiUrl</key>
+<string>$(VIBES_API_URL)</string>
+```
+
+
+#### AppDelegate.swift
+The plugin automatically initializes the Vibes SDK:
+
+
+```swift
+import VibesSDK
+
+// In your AppDelegate.swift
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // Vibes SDK is automatically initialized
+    return true
+}
+```
+
+
 ### Development Workflow
 
 
@@ -250,11 +299,16 @@ android {
 
 ## Minimum Requirements
 
-
+### Android
 - **Android API Level**: 21+ (Android 5.0 Lollipop)
 - **Target SDK**: 34 (Android 14)
 - **Compile SDK**: 34
 - **Gradle Version**: 7.0+
+
+### iOS
+- **iOS Version**: 13.0+
+- **Xcode Version**: 15.0+
+- **Swift Version**: 5.0+
 
 
 ## Verification
@@ -339,6 +393,8 @@ eas build:list
 
 # Retry the build
 eas build --profile development --platform android --clear-cache
+# For iOS
+eas build --profile development --platform ios --clear-cache
 
 
 #### 2. Development Client Issues
@@ -363,6 +419,8 @@ If the Vibes plugin isn't working:
 # Verify plugin configuration in app.config.ts
 # Rebuild the development client
 eas build --profile development --platform android --clear-cache
+# For iOS
+eas build --profile development --platform ios --clear-cache
 ```
 
 
@@ -384,7 +442,7 @@ After successful installation:
 2. **Initialize Vibes SDK** in your app code using the examples in the Usage Guide below
 3. **Configure your Vibes dashboard** - Set up your app in the Vibes platform and get your credentials
 4. **Test basic functionality** - Register device, associate user, and test push notifications
-5. **Create production build** when ready to deploy: `eas build --profile production --platform android`
+5. **Create production build** when ready to deploy: `eas build --profile production --platform android` or `eas build --profile production --platform ios`
 
 
 

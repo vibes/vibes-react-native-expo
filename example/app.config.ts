@@ -27,10 +27,12 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "vibes-react-native-expo",
+      "../app.plugin.js",
       {
         androidAppId: process.env.ANDROID_APP_ID,
         appUrl: process.env.APP_URL,
+        iosAppId: process.env.IOS_APP_ID,
+        vibesAppEnv: "UAT",
       },
     ],
   ],
