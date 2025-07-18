@@ -206,7 +206,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     ///
     /// - Parameters:
     ///   - message: The Inbox Message
-    AsyncFunction("onInboxMessageOpen") { message in
+    AsyncFunction("onInboxMessageOpen") { (message: [String: Any]) in
       guard let inboxMessage = InboxMessage(attributes: message) else {
         print("INBOX_MESSAGE_OPEN_ERROR: Could not create Inbox Message from payload")
         return
@@ -317,9 +317,10 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     AsyncFunction("getVibesDeviceInfo") {
       logPushNotification("=== GET VIBES DEVICE INFO ===")
       
+      let userDefaults = UserDefaults.standard
       let deviceInfo: [String: Any] = [
-        "device_id": vibes.credentialManager.currentCredential?.deviceId ?? "",
-        "push_token": vibes.pushToken ?? "",
+        "device_id": userDefaults.string(forKey: "vibesDeviceId") ?? "",
+        "push_token": ExpoVibesSDKModule.lastDeviceToken ?? "",
         "latitude": "",
         "longitude": ""
       ]
@@ -338,7 +339,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
 
     /// Get SDK version
     AsyncFunction("getSDKVersion") {
-      return Constants.SDKBuildVersion
+      return "4.12.0"
     }
 
   }
