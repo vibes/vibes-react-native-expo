@@ -66,10 +66,18 @@ export default {
        "vibes-react-native-expo",
        {
          androidAppId: process.env.ANDROID_APP_ID, 
-         appUrl: process.env.APP_URL, 
+         appUrl: process.env.APP_URL,
+         iosAppId: process.env.IOS_APP_ID,
+         vibesAppEnv: process.env.VIBES_APP_ENV || "UAT",
        },
      ],
    ],
+   ios: {
+     bundleIdentifier: "com.yourcompany.yourapp",
+     entitlements: {
+       "aps-environment": "development"
+     }
+   },
    android: {
      package: "com.yourcompany.yourapp",
      // ... other android config
@@ -81,13 +89,15 @@ export default {
 
 ### 3. Environment Variables 
 
-In `app.config.ts`, you can reference environment variables directly using `process.env.ANDROID_APP_ID` and `process.env.APP_URL` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
+In `app.config.ts`, you can reference environment variables directly using `process.env.ANDROID_APP_ID`, `process.env.APP_URL`, `process.env.IOS_APP_ID`, and `process.env.VIBES_APP_ENV` (no `EXPO_PUBLIC_` prefix needed), because the config is loaded at build time, not at runtime.
 Create a `.env` file in your project root and add your Vibes credentials:
 
 
 ```env
 ANDROID_APP_ID=your-android-app-id-here
+IOS_APP_ID=your-ios-app-id-here
 APP_URL=https://your-vibes-api-url.com/mobile_apps
+VIBES_APP_ENV=UAT
 ```
 
 
@@ -103,7 +113,8 @@ export default {
        {
          androidAppId: process.env.ANDROID_APP_ID,
          appUrl: process.env.APP_URL,
-         iosAppId: process.env.IOS_APP_ID
+         iosAppId: process.env.IOS_APP_ID,
+         vibesAppEnv: process.env.VIBES_APP_ENV || "UAT"
        },
      ],
    ],
@@ -122,8 +133,9 @@ Set secrets in Expo/EAS Cloud:
 
 ```sh
 eas secret:create --name ANDROID_APP_ID --value your-android-app-id
-eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
 eas secret:create --name IOS_APP_ID --value your-ios-app-id
+eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
+eas secret:create --name VIBES_APP_ENV --value UAT
 ```
 
 **Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
@@ -152,7 +164,9 @@ Create or update your `eas.json` file to include development builds:
      },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
-       "APP_URL": "$APP_URL"
+       "IOS_APP_ID": "$IOS_APP_ID",
+       "APP_URL": "$APP_URL",
+       "VIBES_APP_ENV": "$VIBES_APP_ENV"
      }
    },
    "preview": {
@@ -165,7 +179,9 @@ Create or update your `eas.json` file to include development builds:
      },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
-       "APP_URL": "$APP_URL"
+       "IOS_APP_ID": "$IOS_APP_ID",
+       "APP_URL": "$APP_URL",
+       "VIBES_APP_ENV": "$VIBES_APP_ENV"
      }
    },
    "production": {
@@ -177,7 +193,9 @@ Create or update your `eas.json` file to include development builds:
      },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
-       "APP_URL": "$APP_URL"
+       "IOS_APP_ID": "$IOS_APP_ID",
+       "APP_URL": "$APP_URL",
+       "VIBES_APP_ENV": "$VIBES_APP_ENV"
      }
    }
  },
@@ -255,38 +273,41 @@ android {
 
 ## iOS Configuration Details
 
-
 ### Automatic Configuration
 
-
-The plugin automatically configures the native iOS files during the EAS build process. You don't need to manually edit these files:
-
+The plugin automatically configures the native iOS files during the EAS build process:
 
 #### Info.plist
 The plugin automatically adds these keys:
-
-
 ```xml
 <key>VibesAppId</key>
 <string>$(VIBES_APP_ID)</string>
-<key>VibesApiUrl</key>
+<key>VibesApiURL</key>
 <string>$(VIBES_API_URL)</string>
+<key>VibesAppEnv</key>
+<string>$(VIBES_APP_ENV)</string>
+<key>NSPushNotificationsUsageDescription</key>
+<string>This app uses push notifications to keep you updated.</string>
+<key>UIBackgroundModes</key>
+<array>
+  <string>remote-notification</string>
+</array>
 ```
 
+#### AppDelegate.mm
+The plugin automatically creates and configures AppDelegate.mm with Vibes SDK initialization and push notification handling.
 
-#### AppDelegate.swift
-The plugin automatically initializes the Vibes SDK:
+#### VibesBridge Files
+The plugin automatically creates:
+- `VibesBridge.h` - Header file for native bridge
+- `VibesBridge.m` - Implementation file for native bridge with push notification setup
 
-
-```swift
-import VibesSDK
-
-// In your AppDelegate.swift
-func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    // Vibes SDK is automatically initialized
-    return true
-}
-```
+#### Push Notifications
+The plugin automatically adds:
+- Push notification permissions (`NSPushNotificationsUsageDescription`)
+- Background modes for remote notifications (`UIBackgroundModes`)
+- Entitlements for push notifications (`aps-environment`)
+- Automatic push token handling in AppDelegate.mm
 
 
 ### Development Workflow
@@ -309,6 +330,8 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 - **iOS Version**: 13.0+
 - **Xcode Version**: 15.0+
 - **Swift Version**: 5.0+
+- **Push Notifications**: Must be configured in Apple Developer Portal
+- **Entitlements**: `aps-environment` must be set to `development` or `production`
 
 
 ## Verification
@@ -423,6 +446,15 @@ eas build --profile development --platform android --clear-cache
 eas build --profile development --platform ios --clear-cache
 ```
 
+#### 4. iOS Push Notification Issues
+If push notifications aren't working on iOS:
+```bash
+# Verify entitlements are set correctly
+# Check that aps-environment is set to "development" or "production"
+# Ensure push notifications are enabled in Apple Developer Portal
+# Verify APNs certificate/key is configured correctly
+```
+
 
 ### Debug Steps
 
@@ -441,8 +473,12 @@ After successful installation:
 1. **Test the development build** - Install the APK on your device and verify it connects to your development server
 2. **Initialize Vibes SDK** in your app code using the examples in the Usage Guide below
 3. **Configure your Vibes dashboard** - Set up your app in the Vibes platform and get your credentials
-4. **Test basic functionality** - Register device, associate user, and test push notifications
-5. **Create production build** when ready to deploy: `eas build --profile production --platform android` or `eas build --profile production --platform ios`
+4. **Configure iOS Push Notifications** - Set up push notifications in Apple Developer Portal:
+   - Create an APNs certificate or key
+   - Configure your app's bundle identifier
+   - Enable push notifications capability
+5. **Test basic functionality** - Register device, associate user, and test push notifications
+6. **Create production build** when ready to deploy: `eas build --profile production --platform android` or `eas build --profile production --platform ios`
 
 
 

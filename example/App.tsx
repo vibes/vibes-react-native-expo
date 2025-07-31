@@ -11,9 +11,11 @@ export default function App() {
   const [deviceStatus, setDeviceStatus] = useState<string>("");
   const [isLoadingRegisterDevice, setIsLoadingRegisterDevice] = useState(false);
   const [pushStatus, setPushStatus] = useState<string>("");
-  const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
   const [pushToken, setPushToken] = useState<string>("");
-
+  const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
+  const [isRegisteredForPush, setIsRegisteredForPush] = useState<boolean | null>(null);
+  const [isDeviceRegistered, setIsDeviceRegistered] = useState<boolean | null>(null);
+  const [isLoadingCheckStatus, setIsLoadingCheckStatus] = useState(false);
   const handleGetSDKVersion = async () => {
     try {
       setIsLoadingSdkVersion(true);
@@ -45,9 +47,9 @@ export default function App() {
   const handleRegisterDevice = async () => {
     try {
       setIsLoadingRegisterDevice(true);
-      const result = await ExpoVibesSDK.registerDevice();
-      setDeviceStatus("Device registered successfully: " + result);
-      console.log("Device registered successfully:", result);
+      await ExpoVibesSDK.registerDevice();
+      setDeviceStatus("Device registered successfully");
+      console.log("Device registered successfully");
     } catch (e) {
       setDeviceStatus("Device registration failed: " + String(e));
       console.log("Device registration failed:", e);
@@ -59,22 +61,39 @@ export default function App() {
   const handleRegisterPush = async () => {
     try {
       setIsLoadingRegisterPush(true);
-      const result = await ExpoVibesSDK.registerPush();
-      setPushStatus("Push registered successfully: " + result);
-      console.log("registerPush result:", result);
-      try {
-        const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
-        if (deviceInfo && deviceInfo.push_token) {
-          setPushToken(deviceInfo.push_token);
-        }
-      } catch (deviceInfoError) {
-        console.log("Error getting device info after push registration:", deviceInfoError);
-      }
+      await ExpoVibesSDK.registerPush();
+      setPushStatus("Push registration successful");
+      console.log("Push registration successful");
+      
+      // Get push token
+      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
+      setPushToken(deviceInfo.push_token || "");
     } catch (e) {
-      setPushStatus("Push registration failed: " + String(e));
-      console.log("Push registration failed:", e);
+      setPushStatus("Error registering push: " + String(e));
+      console.log("Error registering push:", e);
     } finally {
       setIsLoadingRegisterPush(false);
+    }
+  };
+
+  const handleCheckStatus = async () => {
+    try {
+      setIsLoadingCheckStatus(true);
+      
+      // Get device info which includes registration status
+      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
+      
+      // Use the actual registration status from Vibes SDK
+      setIsDeviceRegistered(deviceInfo.is_registered);
+      setIsRegisteredForPush(deviceInfo.is_push_registered);
+      
+      console.log("Status check completed", deviceInfo);
+    } catch (e) {
+      console.log("Error checking status:", e);
+      setIsDeviceRegistered(false);
+      setIsRegisteredForPush(false);
+    } finally {
+      setIsLoadingCheckStatus(false);
     }
   };
 
@@ -124,6 +143,19 @@ export default function App() {
             </View>
           )}
         </Group>
+        <Group name="Status Check">
+          <Button 
+            title={isLoadingCheckStatus ? "Loading..." : "Check Registration Status"} 
+            onPress={handleCheckStatus}
+            disabled={isLoadingCheckStatus}
+          />
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>Registration Status:</Text>
+            <Text>Device Registered: {isDeviceRegistered === null ? "Unknown" : isDeviceRegistered ? "✅ Yes" : "❌ No"}</Text>
+            <Text>Push Notifications: {isRegisteredForPush === null ? "Unknown" : isRegisteredForPush ? "✅ Yes" : "❌ No"}</Text>
+          </View>
+        </Group>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -202,5 +234,33 @@ const styles = {
     backgroundColor: '#f0f0f0',
     padding: 5,
     borderRadius: 3,
+  },
+  messageContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  messageTitle: {
+    fontWeight: 'bold' as const,
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  messageBody: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: '#666',
+  },
+  messageMeta: {
+    fontSize: 12,
+    color: '#999',
+    marginBottom: 10,
+  },
+  messageActions: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    gap: 5,
   },
 };

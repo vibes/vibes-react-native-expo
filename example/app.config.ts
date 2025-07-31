@@ -15,6 +15,12 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.vibes.push.test.rn",
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false
+    },
+    entitlements: {
+      "aps-environment": "development"
+    }
   },
   android: {
     adaptiveIcon: {
@@ -27,11 +33,11 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "../app.plugin.js",
+      "vibes-react-native-expo",
       {
-        androidAppId: process.env.ANDROID_APP_ID,
-        appUrl: process.env.APP_URL,
-        iosAppId: process.env.IOS_APP_ID,
+        androidAppId: '3344c960-f53b-43d5-9b3a-2b4498703ef3',
+        appUrl: "https://public-api-uatus0.vibescm.com/mobile_apps",
+        iosAppId: '3344c960-f53b-43d5-9b3a-2b4498703ef3',
         vibesAppEnv: "UAT",
       },
     ],
