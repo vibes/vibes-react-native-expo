@@ -435,6 +435,10 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       UserDefaults.standard.set(deviceId, forKey: "vibesDeviceId")
       self.logPushNotification("SUCCESS: Device registered with ID: \(deviceId)", type: "SUCCESS")
       print("Device registered with ID: \(deviceId)")
+      
+      // Register push notifications after device is registered
+      self.logPushNotification("Registering push notifications...")
+      Vibes.shared.registerPush()
     } else {
       self.logPushNotification("WARNING: Device registration completed but no device ID received", type: "WARNING")
     }
@@ -469,6 +473,34 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     print("=== VIBES DELEGATE: didAssociatePerson END ===")
     self.logPushNotification("=== VIBES DELEGATE: didAssociatePerson END ===")
   }
+  
+  public func didRegisterPush(error: Error?) {
+    self.logPushNotification("=== VIBES DELEGATE: didRegisterPush ===")
+    
+    if let error = error {
+      self.logPushNotification("ERROR: Push registration failed - \(error.localizedDescription)", type: "ERROR")
+      print("ERROR: Push registration failed - \(error.localizedDescription)")
+    } else {
+      self.logPushNotification("SUCCESS: Push registration successful", type: "SUCCESS")
+      print("SUCCESS: Push registration successful")
+    }
+    
+    self.logPushNotification("=== VIBES DELEGATE: didRegisterPush END ===")
+  }
+  
+  public func didUnregisterPush(error: Error?) {
+    self.logPushNotification("=== VIBES DELEGATE: didUnregisterPush ===")
+    
+    if let error = error {
+      self.logPushNotification("ERROR: Push unregistration failed - \(error.localizedDescription)", type: "ERROR")
+      print("ERROR: Push unregistration failed - \(error.localizedDescription)")
+    } else {
+      self.logPushNotification("SUCCESS: Push unregistration successful", type: "SUCCESS")
+      print("SUCCESS: Push unregistration successful")
+    }
+    
+    self.logPushNotification("=== VIBES DELEGATE: didUnregisterPush END ===")
+  }
 
 }
 
@@ -480,6 +512,10 @@ extension UIResponder {
     let token = tokenParts.joined()
     print("🔑 [PUSH_TOKEN] APNs Device Token: \(token)")
     ExpoVibesSDKModule.lastDeviceToken = token
+    
+    // Set device token in Vibes SDK
+    Vibes.shared.setPushToken(fromData: deviceToken)
+    print("🔑 [PUSH_TOKEN] Device token set in Vibes SDK")
   }
 
   @objc

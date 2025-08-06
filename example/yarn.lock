@@ -3782,11 +3782,6 @@ fs.realpath@^1.0.0:
   resolved "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
 
-fsevents@^2.3.2:
-  version "2.3.3"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
-  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
-
 function-bind@^1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz"
@@ -7139,11 +7134,12 @@ vary@~1.1.2:
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-"vibes-react-native-expo@file:../":
-  version "0.3.10-internal.3"
-  resolved "file:.."
+vibes-react-native-expo@0.3.10-internal.6:
+  version "0.3.10-internal.6"
+  resolved "https://registry.npmjs.org/vibes-react-native-expo/-/vibes-react-native-expo-0.3.10-internal.6.tgz"
+  integrity sha512-B/FZgCdBVm0UKdyUl+qZOp+cvMJQzDJLhgHXOKx6Hq43Rvn+2qF7X4oGi8hAuFqtrRIDVluJhM7y6QHOCK+MGw==
   dependencies:
-    expo-dev-client "~5.2.4"
+    expo-dev-client "~4.0.29"
 
 vlq@^1.0.0:
   version "1.0.1"

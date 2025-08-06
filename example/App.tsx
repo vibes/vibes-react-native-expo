@@ -13,9 +13,7 @@ export default function App() {
   const [pushStatus, setPushStatus] = useState<string>("");
   const [pushToken, setPushToken] = useState<string>("");
   const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
-  const [isRegisteredForPush, setIsRegisteredForPush] = useState<boolean | null>(null);
-  const [isDeviceRegistered, setIsDeviceRegistered] = useState<boolean | null>(null);
-  const [isLoadingCheckStatus, setIsLoadingCheckStatus] = useState(false);
+
   const handleGetSDKVersion = async () => {
     try {
       setIsLoadingSdkVersion(true);
@@ -76,26 +74,7 @@ export default function App() {
     }
   };
 
-  const handleCheckStatus = async () => {
-    try {
-      setIsLoadingCheckStatus(true);
-      
-      // Get device info which includes registration status
-      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
-      
-      // Use the actual registration status from Vibes SDK
-      setIsDeviceRegistered(deviceInfo.is_registered);
-      setIsRegisteredForPush(deviceInfo.is_push_registered);
-      
-      console.log("Status check completed", deviceInfo);
-    } catch (e) {
-      console.log("Error checking status:", e);
-      setIsDeviceRegistered(false);
-      setIsRegisteredForPush(false);
-    } finally {
-      setIsLoadingCheckStatus(false);
-    }
-  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -143,18 +122,7 @@ export default function App() {
             </View>
           )}
         </Group>
-        <Group name="Status Check">
-          <Button 
-            title={isLoadingCheckStatus ? "Loading..." : "Check Registration Status"} 
-            onPress={handleCheckStatus}
-            disabled={isLoadingCheckStatus}
-          />
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>Registration Status:</Text>
-            <Text>Device Registered: {isDeviceRegistered === null ? "Unknown" : isDeviceRegistered ? "✅ Yes" : "❌ No"}</Text>
-            <Text>Push Notifications: {isRegisteredForPush === null ? "Unknown" : isRegisteredForPush ? "✅ Yes" : "❌ No"}</Text>
-          </View>
-        </Group>
+
 
       </ScrollView>
     </SafeAreaView>

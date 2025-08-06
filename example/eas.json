@@ -1,22 +1,29 @@
 {
   "cli": {
-    "version": ">= 5.9.1"
+    "version": ">= 16.11.0"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-       "ANDROID_APP_ID": "3344c960-f53b-43d5-9b3a-2b4498703ef3",
-       "IOS_APP_ID": "3344c960-f53b-43d5-9b3a-2b4498703ef3",
-       "APP_URL": "https://public-api-uatus0.vibescm.com/mobile_apps",
-       "VIBES_APP_ENV": "UAT"
+       "ANDROID_APP_ID": "$ANDROID_APP_ID",
+       "IOS_APP_ID": "$IOS_APP_ID",
+       "APP_URL": "$APP_URL",
+       "VIBES_APP_ENV": "$VIBES_APP_ENV"
       },
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug",
-        "credentialsSource": "remote"
-      }
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
+      },
+      "android": {
+      "buildType": "apk",
+      "gradleCommand": ":app:assembleDebug"
+    }
     },
     "production": {
       "env": {
@@ -27,7 +34,10 @@
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Release",
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
       }
     },
     "preview": {
@@ -41,7 +51,10 @@
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug",
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
       }
     }
   },

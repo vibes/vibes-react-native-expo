@@ -2,7 +2,6 @@
 //  VibesModuleLogger.swift
 //  Vibes
 //
-//  Created by Clement Wekesa on 2/26/25.
 //
 
 import VibesPush
@@ -22,7 +21,6 @@ class VibesModuleLogger: NSObject {
 
   var deviceId: String! = "-"
 
-  // Can't init is singleton
   override private init() {}
 
   fileprivate func sendLog(

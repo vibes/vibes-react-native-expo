@@ -2,7 +2,6 @@
 //  VibesClient.swift
 //  Vibes
 //
-//  Created by Clement Wekesa on 2/26/25.
 //
 import VibesPush
 import UserNotifications

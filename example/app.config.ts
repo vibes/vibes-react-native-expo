@@ -33,14 +33,22 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "../app.plugin.js",
+      "vibes-react-native-expo",
       {
-        androidAppId: '3344c960-f53b-43d5-9b3a-2b4498703ef3',
-        appUrl: "https://public-api-uatus0.vibescm.com/mobile_apps",
-        iosAppId: '3344c960-f53b-43d5-9b3a-2b4498703ef3',
-        vibesAppEnv: "UAT",
+        androidAppId: process.env.ANDROID_APP_ID,
+        appUrl: process.env.APP_URL,
+        iosAppId: process.env.IOS_APP_ID,
+        vibesAppEnv: process.env.VIBES_APP_ENV,
       },
     ],
+    // [
+    //   "expo-build-properties",
+    //   {
+    //     ios: {
+    //       useFrameworks: "static"
+    //     }
+    //   }
+    // ]
   ],
   web: {
     favicon: "./assets/favicon.png",

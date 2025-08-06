@@ -1,9 +1,63 @@
+// Anchors RegExp
 export const MATCH_APP_DELEGATE_IMPORTS_OBJCPP = /#import "AppDelegate\.h"/;
 export const MATCH_APP_DELEGATE_IMPORTS_SWIFT = /@UIApplicationMain/;
 export const MATCH_FINISH_LAUNCHING_METHOD_OBJCPP =
   /-\s*\(BOOL\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didFinishLaunchingWithOptions:/g;
 export const MATCH_FINISH_LAUNCHING_METHOD_SWIFT =
-  /\bsuper\.application\(\w+?, didFinishLaunchingWithOptions: \w+?\)/g;
+  /\b(return\s+)?super\.application\(\w+?, didFinishLaunchingWithOptions: \w+?\)/g;
+
+// Device token registration patterns
+export const MATCH_DEVICE_TOKEN_METHOD_OBJCPP =
+  /-\s*\(void\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didRegisterForRemoteNotificationsWithDeviceToken:\s*\(NSData\s*\*\s*\)\s*\w+/g;
+export const MATCH_DEVICE_TOKEN_METHOD_SWIFT =
+  /\bfunc\s+application\(\s*_\s+application:\s*UIApplication,\s*didRegisterForRemoteNotificationsWithDeviceToken\s+deviceToken:\s*Data\s*\)/g;
+
+// Extension patterns for device token registration
+export const MATCH_DEVICE_TOKEN_METHOD_EXTENSION_OBJCPP =
+  /-\s*\(void\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didRegisterForRemoteNotificationsWithDeviceToken:\s*\(NSData\s*\*\s*\)\s*\w+\s*\{/g;
+export const MATCH_DEVICE_TOKEN_METHOD_EXTENSION_SWIFT =
+  /\bfunc\s+application\(\s*_\s+application:\s*UIApplication,\s*didRegisterForRemoteNotificationsWithDeviceToken\s+deviceToken:\s*Data\s*\)\s*\{/g;
+
+// Patterns for adding device token method to AppDelegate
+export const MATCH_APP_DELEGATE_CLASS_END_SWIFT = /^\s*}\s*$/gm;
+export const MATCH_APP_DELEGATE_CLASS_END_OBJCPP = /^\s*@end\s*$/gm;
+
+// Device token registration code
+export const REGISTER_DEVICE_TOKEN_OBJCPP = `  [VibesBridge registerDeviceToken:deviceToken];`;
+export const REGISTER_DEVICE_TOKEN_SWIFT = `    Vibes.registerPush()`;
+
+// Device token method to add to AppDelegate
+export const DEVICE_TOKEN_METHOD_SWIFT = `
+  // MARK: - Push Notifications
+  
+  public override func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+    Vibes.shared.setPushToken(fromData: deviceToken)
+  }
+  
+  public override func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
+  }
+`;
+
+export const DEVICE_TOKEN_METHOD_OBJCPP = `
+// MARK: - Push Notifications
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  [super application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+  [VibesBridge registerDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  [super application:application didFailToRegisterForRemoteNotificationsWithError:error];
+}
+`;
 
 export const getBridgeHeaderObjC = (projectName: string) => `//
 //  VibesBridge.h
@@ -17,6 +71,7 @@ export const getBridgeHeaderObjC = (projectName: string) => `//
 @interface VibesBridge : NSObject
 
 + (void)configureVibes;
++ (void)registerDeviceToken:(NSData *)deviceToken;
 
 @end
 `;
@@ -54,6 +109,17 @@ export const getBridgeImplementationObjC = (
               configuration:vibesConfig];
 }
 
++ (void)registerDeviceToken:(NSData *)deviceToken
+{
+  // Vibes SDK automatically handles device token registration
+  // iOS automatically passes device token to Vibes SDK
+  // No need to manually register - Vibes SDK handles it automatically
+  NSLog(@"Device token received by VibesBridge: %@", deviceToken);
+  
+  // Optional: Call Vibes SDK registerPush if needed
+  // This is just for logging - Vibes SDK handles device token automatically
+}
+
 @end
 `;
 };
@@ -78,4 +144,6 @@ export const getOptionalConfigLinesSwift = (appId: string, appUrl: string) => [
 ];
 
 export const getConfigLineSwift = (appId: string) =>
-  `    Vibes.configure(appId: "${appId}")`; 
+  `    Vibes.configure(appId: "${appId}")`;
+
+ 
