@@ -47,6 +47,12 @@ npm install vibes-react-native-expo
 yarn add vibes-react-native-expo
 ```
 
+If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly
+
+
+```bash
+npm install --legacy-peer-deps
+```
 
 ### 2. Configure the Plugin
 
@@ -124,7 +130,7 @@ export default {
 
 ## Setting Environment Variables for EAS Cloud Build
 **For EAS Cloud Build:**
-- Set environment variables in the `env` section of your `eas.json` file, referencing secrets using `$ANDROID_APP_ID` and `$APP_URL` (recommended and most secure).
+- Set environment variables in the `env` section of your `eas.json` file, referencing secrets using `$ANDROID_APP_ID`, `$IOS_APP_ID`, `$APP_URL`, and `$VIBES_APP_ENV` (recommended and most secure).
 - Set secrets using the `eas secret:create` command.
 - Do **not** rely on local `.env` files for cloud builds – they are ignored by EAS Cloud Build.
 
@@ -135,7 +141,7 @@ Set secrets in Expo/EAS Cloud:
 eas secret:create --name ANDROID_APP_ID --value your-android-app-id
 eas secret:create --name IOS_APP_ID --value your-ios-app-id
 eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
-eas secret:create --name VIBES_APP_ENV --value UAT
+eas secret:create --name VIBES_APP_ENV --value UAT # or PROD
 ```
 
 **Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
@@ -291,6 +297,7 @@ The plugin automatically adds these keys:
 <string>$(VIBES_API_URL)</string>
 <key>VibesAppEnv</key>
 <string>$(VIBES_APP_ENV)</string>
+
 <key>NSPushNotificationsUsageDescription</key>
 <string>This app uses push notifications to keep you updated.</string>
 <key>UIBackgroundModes</key>
@@ -892,5 +899,31 @@ If you encounter issues during installation:
 
 
 **Note**: This guide is specifically for **Expo Managed Workflow** with **Custom Development Build** for Expo 51. This approach allows you to use native modules like Vibes SDK while maintaining the benefits of managed workflow. For bare React Native projects, see the [bare workflow documentation](https://docs.expo.dev/introduction/managed-vs-bare/).
+
+
+
+## Change log:
+
+0.3.11 (7.11.2025)
+changes:
+- cleaned up the SDK by removing unused Expo dependencies that were causing the version conflicts.
+
+
+
+
+
+| Part | Change (added element) |
+|------|----------------------|
+| ### 1. Install the Package | If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly<br><br>npm install --legacy-peer-deps |
+| ### 2. Configure the Plugin | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT" |
+| ### 3. Environment Variables | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT"<br><br>## Setting Environment Variables for EAS Cloud Build<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT<br><br>### Setting EAS Secrets<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT |
+| ### 4. Configure EAS Build | (1) "development": {<br>      "ios": { "buildConfiguration": "Debug" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(2) "preview": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(3) "production": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    } |
+| ### 5. Create Development Build | # For iOS development build<br>eas build --profile development --platform ios |
+| ## iOS Configuration Details | ### Automatic Configuration<br><br>The plugin automatically configures the native iOS files during the EAS build process. You don't need to manually edit these files:<br><br>#### Info.plist<br>The plugin automatically adds these keys:<br><br><key>VibesAppId</key><br><string>$(VIBES_APP_ID)</string><br><key>VibesApiUrl</key><br><string>$(VIBES_API_URL)</string><br><key>VibesAppEnv</key><br><string>$(VIBES_APP_ENV)</string><br><br>#### AppDelegate.swift<br>The plugin automatically initializes the Vibes SDK:<br><br>import VibesSDK<br><br>// In your AppDelegate.swift<br>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {<br>   // Vibes SDK is automatically initialized<br>   return true<br>} |
+| ## Minimum Requirements | ### iOS<br>- iOS Version: 13.0+<br>- Xcode Version: 15.0+<br>- Swift Version: 5.0+ |
+| ## Troubleshooting -> ### Common Issues -> #### 1. Build Errors | 4. iOS Production Deployment Issues<br>eas build --profile development --platform ios --clear-cache<br>eas build --profile development --platform ios |
+| ## Troubleshooting -> ### Common Issues -> #### 4. iOS Production Deployment Issues | Before submitting to App Store:<br>1. Test with Production Certificate: Use production push notification certificate<br>2. Check Certificates and Provisioning Profiles: Verify all certificates and provisioning profiles are valid and properly configured<br>3. Test Push Notifications: Verify notifications work with production configuration |
+| ## Troubleshooting -> ### Common Issues -> #### 3. Plugin Not Applied | eas build --profile development --platform ios --clear-cache |
+| ## Debug Steps | 5. Create production build when ready to deploy: eas build --profile production --platform android or eas build --profile production --platform ios |
 
 
