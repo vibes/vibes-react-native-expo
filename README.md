@@ -51,7 +51,7 @@ If you continue to encounter errors while installing the Vibes SDK, you can inst
 
 
 ```bash
-npm install --legacy-peer-deps
+npm install vibes-react-native-expo --legacy-peer-deps
 ```
 
 ### 2. Configure the Plugin
@@ -904,16 +904,12 @@ If you encounter issues during installation:
 
 ## Change log:
 
-0.3.12 (8.6.2025)
-changes:
-- cleaned up the SDK by removing unused Expo dependencies that were causing the version conflicts
-
-
-
+0.3.14 (8.6.2025)
 
 | Part | Change (added element) |
 |------|----------------------|
-| ### 1. Install the Package | If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly<br><br>npm install --legacy-peer-deps |
+| ### Vibes SDK | Cleaned up the SDK by removing unused Expo dependencies that were causing the version conflicts |
+| ### 1. Install the Package | If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly<br><br>npm install vibes-react-native-expo --legacy-peer-deps |
 | ### 2. Configure the Plugin | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT" |
 | ### 3. Environment Variables | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT"<br><br>## Setting Environment Variables for EAS Cloud Build<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT<br><br>### Setting EAS Secrets<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT |
 | ### 4. Configure EAS Build | (1) "development": {<br>      "ios": { "buildConfiguration": "Debug" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(2) "preview": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(3) "production": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    } |
