@@ -1,9 +1,10 @@
-# Vibes SDK - Android Installation Guide (Managed Workflow + Custom Development Build)
+# Vibes SDK - Android & iOS Installation Guide (Managed Workflow + Custom Development Build)
 
 
-This guide provides step-by-step instructions for installing and configuring the Vibes SDK in your Android React Native/Expo application using **managed workflow** with **custom development build** and Expo 51.
+This guide provides step-by-step instructions for installing and configuring the Vibes SDK in your Android & iOS React Native/Expo application using **managed workflow** with **custom development build** and Expo 51.
 
 
+**Applicable for Android only:**
 The Vibes SDK for Android is distributed as an **AAR (Android Archive)** file, which is a binary library format that contains compiled Android code, resources, and manifest entries. AAR files are automatically included in your app during the build process through the Expo plugin system.
 
 
@@ -12,8 +13,6 @@ The Vibes SDK for Android is distributed as an **AAR (Android Archive)** file, w
 - They are **stateless** - they don't store any credentials or sensitive information
 - Authentication and configuration are handled at **runtime** through your app's configuration (via `androidAppId` and `appUrl` parameters)
 - The AAR file only provides the **native interface** - actual API calls and authentication happen when your app runs and connects to Vibes servers using your configured credentials
-
-
 
 
 ##  Prerequisites
@@ -904,7 +903,7 @@ If you encounter issues during installation:
 
 ## Change log:
 
-0.3.14 (8.6.2025)
+0.3.15 (8.6.2025)
 
 | Part | Change (added element) |
 |------|----------------------|
