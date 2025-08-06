@@ -911,7 +911,6 @@ changes:
 
 
 
-
 | Part | Change (added element) |
 |------|----------------------|
 | ### 1. Install the Package | If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly<br><br>npm install --legacy-peer-deps |
