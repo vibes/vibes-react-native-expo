@@ -160,7 +160,12 @@ Create or update your `eas.json` file to include development builds:
        "gradleCommand": ":app:assembleDebug"
      },
      "ios": {
-       "buildConfiguration": "Debug"
+       "buildConfiguration": "Debug",
+       //In case you're having eas build cache issue - add these two
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
      },
      "env": {
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
