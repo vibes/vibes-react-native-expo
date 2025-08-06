@@ -904,9 +904,9 @@ If you encounter issues during installation:
 
 ## Change log:
 
-0.3.11 (7.11.2025)
+0.3.11 (8.6.2025)
 changes:
-- cleaned up the SDK by removing unused Expo dependencies that were causing the version conflicts.
+- cleaned up the SDK by removing unused Expo dependencies that were causing the version conflicts
 
 
 

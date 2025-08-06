@@ -7139,10 +7139,10 @@ vary@~1.1.2:
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vibes-react-native-expo@0.3.10-internal.6:
-  version "0.3.10-internal.6"
-  resolved "https://registry.npmjs.org/vibes-react-native-expo/-/vibes-react-native-expo-0.3.10-internal.6.tgz"
-  integrity sha512-B/FZgCdBVm0UKdyUl+qZOp+cvMJQzDJLhgHXOKx6Hq43Rvn+2qF7X4oGi8hAuFqtrRIDVluJhM7y6QHOCK+MGw==
+vibes-react-native-expo@0.3.11:
+  version "0.3.11"
+  resolved "https://registry.npmjs.org/vibes-react-native-expo/-/vibes-react-native-expo-0.3.11.tgz"
+  integrity sha512-nOIaUzAiqdUkH/5oChWdv2MiGdZEz/4vOmP+y5uAHAsS5FKHlZ8PrXRUkJwolLHXa453yoKxYNETpSk68QtfMg==
   dependencies:
     expo-dev-client "~4.0.29"
 
