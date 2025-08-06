@@ -1,12 +1,10 @@
 import { Platform } from 'react-native';
 
-// Firebase będzie dostępny tylko na Android
 let firebaseApp = null;
 let firebaseMessaging = null;
 
 if (Platform.OS === 'android') {
   try {
-    // Dynamiczny import Firebase tylko na Android
     const firebase = require('@react-native-firebase/app');
     const messaging = require('@react-native-firebase/messaging');
     

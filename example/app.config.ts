@@ -33,7 +33,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "vibes-react-native-expo",
+      "../app.plugin.js",
       {
         androidAppId: '3344c960-f53b-43d5-9b3a-2b4498703ef3',
         appUrl: "https://public-api-uatus0.vibescm.com/mobile_apps",

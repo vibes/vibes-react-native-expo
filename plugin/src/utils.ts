@@ -4,7 +4,6 @@ export const getMajorSdkVersion = (
   if (!sdkVersion) {
     return null;
   }
-  // Sdk version is in format: XX.XX.XX, eg. 53.0.0
   const [major] = sdkVersion.split(".");
   if (!major) {
     return null;
