@@ -33,7 +33,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "vibes-react-native-expo",
+      "../app.plugin.js",
       {
         androidAppId: process.env.ANDROID_APP_ID,
         appUrl: process.env.APP_URL,
