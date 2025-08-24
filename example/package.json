@@ -18,9 +18,13 @@
     "vibes-react-native-expo": "file:../"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
     "@types/react": "~18.2.45",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.10",
+    "rimraf": "^4.4.1",
+    "glob": "^9.3.5"
+  }
 }

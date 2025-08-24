@@ -8,9 +8,11 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
   
   public static var lastDeviceToken: String? = nil
   
-  // Properties for associatePerson promise handling
+  // Properties for promise handling
   private var associatePersonPromise: Promise?
   private var currentExternalPersonId: String?
+  private var pendingRegisterDevicePromise: Promise?
+  private var pendingRegisterPushPromise: Promise?
   
   // Static method to be called from AppDelegate
   @objc public static func setLastDeviceToken(_ token: String) {
@@ -66,7 +68,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     Events("onChangeRegisterDevice")
 
     /// Register Device
-     AsyncFunction("registerDevice") {
+    AsyncFunction("registerDevice") { (promise: Promise) in
       self.logPushNotification("=== DEVICE REGISTRATION START ===")
       logDeviceInfo()
       logNotificationSettings()
@@ -76,43 +78,55 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       {
         vibesDeviceId = deviceId
         self.logPushNotification("Device already registered with ID: \(deviceId)")
+        promise.resolve(deviceId)
       } else {
         self.logPushNotification("Device not registered, proceeding with registration")
+        
+        self.logPushNotification("Calling vibes.registerDevice()")
+        vibes.registerDevice()
+        
+        // Store the promise to resolve when didRegisterDevice delegate is called
+        self.pendingRegisterDevicePromise = promise
       }
-      
-      self.logPushNotification("Calling vibes.registerDevice()")
-      vibes.registerDevice()
       self.logPushNotification("=== DEVICE REGISTRATION END ===")
     }
 
     /// Un-register Device
-    AsyncFunction("unregisterDevice") {
+    AsyncFunction("unregisterDevice") { (promise: Promise) in
       vibes.unregisterDevice()
+      // For unregisterDevice, we resolve immediately since it's a synchronous operation
+      promise.resolve("Device unregistered")
     }
 
     /// Register Push
-    AsyncFunction("registerPush") {
+    AsyncFunction("registerPush") { (promise: Promise) in
       self.logPushNotification("=== PUSH REGISTRATION START ===")
       logNotificationSettings()
       
       if vibes.isDeviceRegistered() {
         self.logPushNotification("Device is registered, proceeding with push registration")
         vibes.registerPush()
-        self.logPushNotification("Push registration initiated (no callback)")
+        
+        // Store the promise to resolve when didRegisterPush delegate is called
+        self.pendingRegisterPushPromise = promise
       } else {
         self.logPushNotification("ERROR: Device Not Registered - \(VibesError.noCredentials)", type: "ERROR")
         print("REGISTER_PUSH_ERROR", "Device Not Registered: \(VibesError.noCredentials)")
+        promise.reject("REGISTER_PUSH_ERROR", "Device Not Registered: \(VibesError.noCredentials)")
       }
       self.logPushNotification("=== PUSH REGISTRATION END ===")
     }
 
     /// Un-register Push
-    AsyncFunction("unregisterPush") {
+    AsyncFunction("unregisterPush") { (promise: Promise) in
       if vibes.isDevicePushRegistered() {
         vibes.unregisterPush()
+        // For unregisterPush, we resolve immediately since it's a synchronous operation
+        promise.resolve("Push unregistered")
       } else {
         self.logPushNotification("ERROR: Push Not Registered - \(VibesError.noPushToken)", type: "ERROR")
         print("UNREGISTER_PUSH_ERROR", "Push Not Registered: \(VibesError.noPushToken)")
+        promise.reject("UNREGISTER_PUSH_ERROR", "Push Not Registered: \(VibesError.noPushToken)")
       }
     }
 
@@ -428,6 +442,9 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       print(
         "There was an error registering the device: \(String(describing: error))"
       )
+      // Resolve the pending promise with error
+      pendingRegisterDevicePromise?.reject("DEVICE_REGISTRATION_ERROR", error.localizedDescription)
+      pendingRegisterDevicePromise = nil
       return
     }
     
@@ -436,11 +453,16 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       self.logPushNotification("SUCCESS: Device registered with ID: \(deviceId)", type: "SUCCESS")
       print("Device registered with ID: \(deviceId)")
       
-      // Register push notifications after device is registered
-      self.logPushNotification("Registering push notifications...")
-      Vibes.shared.registerPush()
+      // Resolve the pending promise with device ID
+      pendingRegisterDevicePromise?.resolve(deviceId)
+      pendingRegisterDevicePromise = nil
+      
+      // Do NOT automatically register push - let user call registerPush() separately
+      // This standardizes behavior with Android
     } else {
       self.logPushNotification("WARNING: Device registration completed but no device ID received", type: "WARNING")
+      pendingRegisterDevicePromise?.reject("DEVICE_REGISTRATION_ERROR", "No device ID received")
+      pendingRegisterDevicePromise = nil
     }
     self.logPushNotification("=== VIBES DELEGATE: didRegisterDevice END ===")
   }
@@ -480,9 +502,15 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     if let error = error {
       self.logPushNotification("ERROR: Push registration failed - \(error.localizedDescription)", type: "ERROR")
       print("ERROR: Push registration failed - \(error.localizedDescription)")
+      // Resolve the pending promise with error
+      pendingRegisterPushPromise?.reject("PUSH_REGISTRATION_ERROR", error.localizedDescription)
+      pendingRegisterPushPromise = nil
     } else {
       self.logPushNotification("SUCCESS: Push registration successful", type: "SUCCESS")
       print("SUCCESS: Push registration successful")
+      // Resolve the pending promise with success
+      pendingRegisterPushPromise?.resolve("Push registration successful")
+      pendingRegisterPushPromise = nil
     }
     
     self.logPushNotification("=== VIBES DELEGATE: didRegisterPush END ===")

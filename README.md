@@ -520,7 +520,7 @@ import ExpoVibesSDK from 'vibes-react-native-expo';
 ### Basic Setup and Initialization
 
 
-**Important:** You should **not** call `registerDevice()` and then immediately call `registerPush()` without waiting for confirmation that the device registration is complete. The promise returned by `registerDevice()` only means the native registration function was called, not that the device is actually registered. You should wait for a confirmation event or callback (such as `didRegisterDevice` or `didRegisterPush`) before proceeding to the next step.
+**Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. You should await these promises before proceeding to the next step. The SDK handles the asynchronous nature of device and push registration internally.
 
 
 A correct implementation should be based on events/callbacks. For example:
