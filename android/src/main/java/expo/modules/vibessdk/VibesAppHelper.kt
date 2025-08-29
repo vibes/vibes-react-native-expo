@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.vibes.vibes.PushPayloadParser
 import expo.modules.kotlin.Promise
 import org.json.*
 import java.util.HashMap
@@ -41,8 +40,8 @@ internal class VibesAppHelper(private val context: Context) {
             "push_token" to (pushToken ?: ""),
             "latitude" to (latitude ?: ""),
             "longitude" to (longitude ?: ""),
-            "is_registered" to (Vibes.getInstance().isDeviceRegistered()),
-            "is_push_registered" to (Vibes.getInstance().isDevicePushRegistered())
+            "is_registered" to (!deviceId.isNullOrEmpty()),
+            "is_push_registered" to (!pushToken.isNullOrEmpty())
         )
 
     fun saveString(key: String, value: String) {

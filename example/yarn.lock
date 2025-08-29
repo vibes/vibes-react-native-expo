@@ -61,18 +61,7 @@
     json5 "^2.2.3"
     semver "^6.3.1"
 
-"@babel/generator@^7.20.0", "@babel/generator@^7.20.5", "@babel/generator@^7.28.0":
-  version "7.28.0"
-  resolved "https://registry.npmjs.org/@babel/generator/-/generator-7.28.0.tgz"
-  integrity sha512-lJjzvrbEeWrhB4P3QBsH7tey117PjLZnDbLiQEKjQ/fNJTjuq4HSqgFA+UNSwZT8D7dxxbnuSBMsa1lrWzKlQg==
-  dependencies:
-    "@babel/parser" "^7.28.0"
-    "@babel/types" "^7.28.0"
-    "@jridgewell/gen-mapping" "^0.3.12"
-    "@jridgewell/trace-mapping" "^0.3.28"
-    jsesc "^3.0.2"
-
-"@babel/generator@^7.28.3":
+"@babel/generator@^7.20.0", "@babel/generator@^7.20.5", "@babel/generator@^7.28.0", "@babel/generator@^7.28.3":
   version "7.28.3"
   resolved "https://registry.npmjs.org/@babel/generator/-/generator-7.28.3.tgz"
   integrity sha512-3lSpxGgvnmZznmBkCRnVREPUFJv2wrv9iAoFDvADJc0ypmdOxdUtcLeBgBJ6zE0PMeTKnxeQzyk0xTBq4Ep7zw==
@@ -6978,9 +6967,10 @@ vary@~1.1.2:
   resolved "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-"vibes-react-native-expo@file:../":
-  version "0.3.15"
-  resolved "file:.."
+vibes-react-native-expo@0.3.15-internal.12:
+  version "0.3.15-internal.12"
+  resolved "https://registry.npmjs.org/vibes-react-native-expo/-/vibes-react-native-expo-0.3.15-internal.12.tgz"
+  integrity sha512-9F6Z1METyLydSl4LXkuz98NkAqJdcW78iXa8+0naH0NymBB1miy8K1Rk2i9yPyEJPWlOOWDmbkHN9t5hyK/QAw==
   dependencies:
     expo-dev-client "~4.0.29"
 

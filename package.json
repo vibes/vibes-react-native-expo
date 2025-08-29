@@ -1,6 +1,6 @@
 {
   "name": "vibes-react-native-expo",
-  "version": "0.3.15",
+  "version": "0.3.15-internal.12",
   "description": "Expo module for Vibes Android & iOS SDK integration",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -35,16 +35,11 @@
     "expo": "*",
     "expo-module-scripts": "^4.1.9",
     "react": "*",
-    "react-native": "0.74.5"
+    "react-native": "*"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*"
-  },
-  "overrides": {
-    "@xmldom/xmldom": "^0.8.10",
-    "rimraf": "^4.4.1",
-    "glob": "^9.3.5"
   }
 }

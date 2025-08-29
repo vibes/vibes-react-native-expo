@@ -10,6 +10,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+
 import com.google.firebase.messaging.FirebaseMessaging
 
 class ExpoVibesSDKModule : Module() {
@@ -45,6 +46,7 @@ class ExpoVibesSDKModule : Module() {
 
     AsyncFunction("registerDevice") { promise: Promise ->
       Log.d(TAG, "Registering device...")
+      
       Vibes.getInstance().registerDevice(object : VibesListener<Credential> {
         override fun onSuccess(credential: Credential) {
           Log.d(TAG, "Device registered: ${credential.deviceID}")
@@ -63,10 +65,19 @@ class ExpoVibesSDKModule : Module() {
       Vibes.getInstance().unregisterDevice(object : VibesListener<Void> {
         override fun onSuccess(unused: Void?) {
           Log.d(TAG, "Device unregistered successfully")
-          promise.resolve("Device unregistered")
+          sendEvent("onDeviceUnregistered", mapOf(
+            "success" to true,
+            "message" to "Device unregistered"
+          ))
+          promise.resolve("Device unregistered successfully")
         }
         override fun onFailure(errorText: String) {
           Log.e(TAG, "Device unregistration failed: $errorText")
+          sendEvent("onError", mapOf(
+            "function" to "unregisterDevice",
+            "error" to errorText,
+            "code" to "DEVICE_UNREGISTRATION_ERROR"
+          ))
           promise.reject("DEVICE_UNREGISTRATION_ERROR", errorText, null)
         }
       })
@@ -75,53 +86,29 @@ class ExpoVibesSDKModule : Module() {
     AsyncFunction("registerPush") { promise: Promise ->
       Log.d(TAG, "Registering push notifications...")
       
-      var isPromiseResolved = false
-      
       try {
-        // Get Firebase Messaging token
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
           Log.d(TAG, "Firebase token obtained: $token")
           
-          // Register the token with Vibes SDK
           Vibes.getInstance().registerPush(token, object : VibesListener<Void> {
             override fun onSuccess(unused: Void?) {
               Log.d(TAG, "Push registration successful")
               appHelper.saveString("Vibes.PushToken", token)
-              if (!isPromiseResolved) {
-                isPromiseResolved = true
-                promise.resolve("Push registration successful")
-              } else {
-                // Promise already resolved, do nothing
-              }
+              promise.resolve("Push registration successful")
             }
             
             override fun onFailure(errorText: String) {
               Log.e(TAG, "Push registration failed: $errorText")
-              if (!isPromiseResolved) {
-                isPromiseResolved = true
-                promise.reject("PUSH_REGISTRATION_ERROR", errorText, null)
-              } else {
-                // Promise already resolved, do nothing
-              }
+              promise.reject("PUSH_REGISTRATION_ERROR", errorText, null)
             }
           })
         }.addOnFailureListener { exception ->
           Log.e(TAG, "Failed to get Firebase token: ${exception.message}")
-          if (!isPromiseResolved) {
-            isPromiseResolved = true
-            promise.reject("FIREBASE_TOKEN_ERROR", "Failed to get Firebase token: ${exception.message}", exception)
-          } else {
-            // Promise already resolved, do nothing
-          }
+          promise.reject("FIREBASE_TOKEN_ERROR", "Failed to get Firebase token: ${exception.message}", exception)
         }
       } catch (e: Exception) {
         Log.e(TAG, "Error in registerPush: ${e.message}")
-        if (!isPromiseResolved) {
-          isPromiseResolved = true
-          promise.reject("PUSH_REGISTRATION_ERROR", "Error in registerPush: ${e.message}", e)
-        } else {
-          // Promise already resolved, do nothing
-        }
+        promise.reject("PUSH_REGISTRATION_ERROR", "Error in registerPush: ${e.message}", e)
       }
     }
 
@@ -129,10 +116,19 @@ class ExpoVibesSDKModule : Module() {
       Vibes.getInstance().unregisterPush(object : VibesListener<Void> {
         override fun onSuccess(unused: Void?) {
           Log.d(TAG, "Push unregistration successful")
-          promise.resolve("Push unregistration successful")
+          sendEvent("onPushUnregistered", mapOf(
+            "success" to true,
+            "message" to "Push unregistration successful"
+          ))
+          promise.resolve("Push unregistered successfully")
         }
         override fun onFailure(errorText: String) {
           Log.e(TAG, "Push unregistration failed: $errorText")
+          sendEvent("onError", mapOf(
+            "function" to "unregisterPush",
+            "error" to errorText,
+            "code" to "PUSH_UNREGISTRATION_ERROR"
+          ))
           promise.reject("PUSH_UNREGISTRATION_ERROR", errorText, null)
         }
       })
@@ -307,5 +303,7 @@ class ExpoVibesSDKModule : Module() {
       Log.e(TAG, "Error retrieving metadata", ex)
     }
   }
+  
+
 }
 

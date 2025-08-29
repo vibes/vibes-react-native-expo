@@ -359,14 +359,31 @@ After installation, verify the setup by checking:
 
 ## Warnings
 
-**These warnings are not blockers for a successful build.** But you're seeing signs that:
+**These warnings are not blockers for a successful build.** The warnings you see are from React Native and Expo dependencies.
 
-- Packages listed below used by Expo and its dependencies are **old or unmaintained**.
-- You may want to **watch them** in the future if any updates are released.
+### Important Notes
 
-### Grouped by Package
+- **SDK Compatibility**: This SDK automatically adapts to your app's Expo and React Native versions
+- **Warning Source**: Warnings come from React Native/Expo dependencies, not from this SDK
+- **Resolution**: Most warnings disappear when you update React Native and Expo to newer versions
 
-#### Legacy or Abandoned Packages
+### How to Suppress Warnings
+
+To suppress the remaining warnings, add the following `overrides` section to your app's `package.json`:
+
+```json
+{
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.10",
+    "rimraf": "^4.4.1",
+    "glob": "^9.3.5"
+  }
+}
+```
+
+### Legacy Packages (from React Native/Expo)
+
+These packages are used by React Native and Expo dependencies:
 
 | Package | Reason |
 |---------|--------|
@@ -374,14 +391,11 @@ After installation, verify the setup by checking:
 | osenv@0.1.5 | Deprecated, no active support |
 | sudo-prompt@9.2.1 | Deprecated tool for elevated permissions |
 | @babel/plugin-proposal-* | These were used when the JS features were still experimental. Since the features are now part of the ECMAScript standard, transform plugins are preferred. |
-| @xmldom/xmldom@0.7.13 | Often used indirectly via tooling (e.g., XML parsers in PDF generators or bundlers) |
-| rimraf@2.x/3.x | Old version |
-| glob@7.x | Old version |
 | querystring@0.2.1 | Old version |
 
 ### Why This Happens
 
-Those packages are pulled in by Expo and it's dependencies during the standard build process.
+These packages are pulled in by React Native and Expo during the standard build process. They are not part of this SDK.
 
 ### Common Warnings
 
@@ -520,7 +534,10 @@ import ExpoVibesSDK from 'vibes-react-native-expo';
 ### Basic Setup and Initialization
 
 
-**Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. You should await these promises before proceeding to the next step. The SDK handles the asynchronous nature of device and push registration internally.
+**Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. 
+
+**You must use `await` to ensure `registerDevice()` completes before calling `registerPush()`.**
+
 
 
 A correct implementation should be based on events/callbacks. For example:
@@ -538,10 +555,9 @@ useEffect(() => {
   // Example: registering device and handling event
   ExpoVibesSDK.registerDevice().then((deviceId) => {
     console.log('Device registered:', deviceId);
-  });
-
-  // Example: registering push and handling event
-  ExpoVibesSDK.registerPush().then((result) => {
+    // Register push after device registration completes
+    return ExpoVibesSDK.registerPush();
+  }).then((result) => {
     console.log('Push registered:', result);
   });
 
@@ -693,7 +709,9 @@ export default function VibesExampleApp() {
 
  const initializeVibes = async () => {
    try {
+     // Register device first (required before push registration)
      await ExpoVibesSDK.registerDevice();
+     // Register push notifications (will wait for device registration to complete)
      await ExpoVibesSDK.registerPush();
      Alert.alert('Success', 'Vibes SDK initialized!');
    } catch (error) {
@@ -902,6 +920,22 @@ If you encounter issues during installation:
 
 
 ## Change log:
+
+
+0.3.17 (8.29.2025)
+
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Improved code quality and performance by optimizing native iOS delegate functions and removing unused code |
+| ### Vibes SDK | Enhanced dependency management and build process optimization for better developer experience |
+| ### Warnings | **These warnings are not blockers for a successful build.** The warnings you see are from React Native and Expo dependencies. |
+| ### Important Notes | **SDK Compatibility**: This SDK automatically adapts to your app's Expo and React Native versions |
+| ### Important Notes | **Warning Source**: Warnings come from React Native/Expo dependencies, not from this SDK |
+| ### Important Notes | **Resolution**: Most warnings disappear when you update React Native and Expo to newer versions |
+| ### How to Suppress Warnings | ```json<br>{<br>  "overrides": {<br>    "@xmldom/xmldom": "^0.8.10",<br>    "rimraf": "^4.4.1",<br>    "glob": "^9.3.5"<br>  }<br>}``` |
+| ### Legacy Packages (from React Native/Expo) | These packages are used by React Native and Expo dependencies: inflight@1.0.6, osenv@0.1.5, sudo-prompt@9.2.1, @babel/plugin-proposal-*, querystring@0.2.1 |
+| ### Usage Guide | **Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. |
+| ### Usage Guide | **You must use `await` to ensure `registerDevice()` completes before calling `registerPush()`.** |
 
 0.3.15 (8.6.2025)
 
