@@ -536,7 +536,7 @@ import ExpoVibesSDK from 'vibes-react-native-expo';
 
 **Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. 
 
-**You must use `await` to ensure `registerDevice()` completes before calling `registerPush()`.**
+**You must ensure `registerDevice()` completes before calling `registerPush()` by using `.then()` chains or `await`.**
 
 
 
@@ -922,7 +922,7 @@ If you encounter issues during installation:
 ## Change log:
 
 
-0.3.17 (8.29.2025)
+0.3.16 (8.29.2025)
 
 | Part | Change (added element) |
 |------|----------------------|
@@ -935,7 +935,7 @@ If you encounter issues during installation:
 | ### How to Suppress Warnings | ```json<br>{<br>  "overrides": {<br>    "@xmldom/xmldom": "^0.8.10",<br>    "rimraf": "^4.4.1",<br>    "glob": "^9.3.5"<br>  }<br>}``` |
 | ### Legacy Packages (from React Native/Expo) | These packages are used by React Native and Expo dependencies: inflight@1.0.6, osenv@0.1.5, sudo-prompt@9.2.1, @babel/plugin-proposal-*, querystring@0.2.1 |
 | ### Usage Guide | **Important:** The `registerDevice()` and `registerPush()` functions return Promises that resolve when the registration is complete. |
-| ### Usage Guide | **You must use `await` to ensure `registerDevice()` completes before calling `registerPush()`.** |
+| ### Usage Guide | **You must ensure `registerDevice()` completes before calling `registerPush()` by using `.then()` chains or `await`.** |
 
 0.3.15 (8.6.2025)
 

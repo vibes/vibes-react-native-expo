@@ -24,7 +24,7 @@ class ExpoVibesSDKModule : Module() {
     Name("ExpoVibesSDK")
 
     Constants {
-      mapOf("SDKBuildVersion" to "4.12.0")
+      mapOf("SDKBuildVersion" to "0.3.16")
     }
 
     Events(
@@ -263,7 +263,7 @@ class ExpoVibesSDKModule : Module() {
     }
 
     AsyncFunction("getSDKVersion") { promise: Promise ->
-      promise.resolve("4.12.0")
+      promise.resolve("0.3.16")
     }
 
     AsyncFunction("initializeVibes") { promise: Promise ->

@@ -62,7 +62,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     }
 
     Constants([
-      "SDKBuildVersion": "4.12.0",
+      "SDKBuildVersion": "0.3.16",
     ])
 
     let userDefaults = UserDefaults.standard
@@ -415,7 +415,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
 
     /// Get SDK version
     AsyncFunction("getSDKVersion") {
-      return "4.12.0"
+      return "0.3.16"
     }
 
     Events("onAssociatePerson")
