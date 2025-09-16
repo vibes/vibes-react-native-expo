@@ -28,14 +28,8 @@ import {
   MATCH_FINISH_LAUNCHING_METHOD_SWIFT,
   MATCH_DEVICE_TOKEN_METHOD_OBJCPP,
   MATCH_DEVICE_TOKEN_METHOD_SWIFT,
-  MATCH_DEVICE_TOKEN_METHOD_EXTENSION_OBJCPP,
-  MATCH_DEVICE_TOKEN_METHOD_EXTENSION_SWIFT,
-  MATCH_APP_DELEGATE_CLASS_END_SWIFT,
-  MATCH_APP_DELEGATE_CLASS_END_OBJCPP,
   REGISTER_DEVICE_TOKEN_OBJCPP,
   REGISTER_DEVICE_TOKEN_SWIFT,
-  DEVICE_TOKEN_METHOD_SWIFT,
-  DEVICE_TOKEN_METHOD_OBJCPP,
 } from "./iosNativeContent";
 import type { ConfigPluginProps } from "./types";
 import { getMajorSdkVersion } from "./utils";
@@ -152,24 +146,6 @@ export function removeVibesDeviceTokenRegistration(src: string): MergeResults {
   });
 }
 
-// Add device token registration for Swift extension
-export function addVibesDeviceTokenRegistrationExtension(src: string): MergeResults {
-  return mergeContents({
-    tag: "vibes-device-token-registration-extension",
-    src,
-    newSrc: REGISTER_DEVICE_TOKEN_SWIFT,
-    anchor: MATCH_DEVICE_TOKEN_METHOD_EXTENSION_SWIFT,
-    offset: 2,
-    comment: "//",
-  });
-}
-
-export function removeVibesDeviceTokenRegistrationExtension(src: string): MergeResults {
-  return removeContents({
-    tag: "vibes-device-token-registration-extension",
-    src,
-  });
-}
 
 // Add device token registration for Objective-C
 export function addVibesBridgeDeviceTokenRegistration(src: string): MergeResults {
@@ -190,62 +166,7 @@ export function removeVibesBridgeDeviceTokenRegistration(src: string): MergeResu
   });
 }
 
-// Add device token registration for Objective-C extension
-export function addVibesBridgeDeviceTokenRegistrationExtension(src: string): MergeResults {
-  return mergeContents({
-    tag: "vibes-bridge-device-token-registration-extension",
-    src,
-    newSrc: REGISTER_DEVICE_TOKEN_OBJCPP,
-    anchor: MATCH_DEVICE_TOKEN_METHOD_EXTENSION_OBJCPP,
-    offset: 2,
-    comment: "//",
-  });
-}
 
-export function removeVibesBridgeDeviceTokenRegistrationExtension(src: string): MergeResults {
-  return removeContents({
-    tag: "vibes-bridge-device-token-registration-extension",
-    src,
-  });
-}
-
-// Add device token methods to AppDelegate for Swift
-export function addVibesDeviceTokenMethodsToAppDelegate(src: string): MergeResults {
-  return mergeContents({
-    tag: "vibes-device-token-methods-appdelegate",
-    src,
-    newSrc: DEVICE_TOKEN_METHOD_SWIFT,
-    anchor: MATCH_APP_DELEGATE_CLASS_END_SWIFT,
-    offset: -1,
-    comment: "//",
-  });
-}
-
-export function removeVibesDeviceTokenMethodsFromAppDelegate(src: string): MergeResults {
-  return removeContents({
-    tag: "vibes-device-token-methods-appdelegate",
-    src,
-  });
-}
-
-// Add device token methods to AppDelegate for Objective-C
-export function addVibesDeviceTokenMethodsToAppDelegateObjC(src: string): MergeResults {
-  return mergeContents({
-    tag: "vibes-device-token-methods-appdelegate-objc",
-    src,
-    newSrc: DEVICE_TOKEN_METHOD_OBJCPP,
-    anchor: MATCH_APP_DELEGATE_CLASS_END_OBJCPP,
-    offset: -1,
-    comment: "//",
-  });
-}
-
-export function removeVibesDeviceTokenMethodsFromAppDelegateObjC(src: string): MergeResults {
-  return removeContents({
-    tag: "vibes-device-token-methods-appdelegate-objc",
-    src,
-  });
-}
 
 // Creates VibesBridge files
 const withVibesBridgeFiles: ConfigPlugin<ConfigPluginProps> = (
@@ -330,6 +251,15 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
   const appId = props?.iosAppId;
   const appUrl = props?.appUrl;
 
+  console.log(`🔧 [iOS Plugin] Starting with props:`, {
+    iosAppId: appId,
+    appUrl: appUrl,
+    vibesAppEnv: props?.vibesAppEnv
+  });
+  
+  console.log(`🔧 [iOS Plugin] Raw props object:`, props);
+  console.log(`🔧 [iOS Plugin] All environment variables:`, process.env);
+
   const sdkVersion = getMajorSdkVersion(config.sdkVersion);
 
   if (!sdkVersion) {
@@ -354,12 +284,6 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         config.modResults.contents = removeVibesDeviceTokenRegistration(
           config.modResults.contents,
         ).contents;
-        config.modResults.contents = removeVibesDeviceTokenRegistrationExtension(
-          config.modResults.contents,
-        ).contents;
-        config.modResults.contents = removeVibesDeviceTokenMethodsFromAppDelegate(
-          config.modResults.contents,
-        ).contents;
         return config;
       }
 
@@ -379,27 +303,13 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         }
 
         // Add device token registration for Swift
-        let deviceTokenResults = addVibesDeviceTokenRegistration(
+        const deviceTokenResults = addVibesDeviceTokenRegistration(
           config.modResults.contents,
         );
         if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
           config.modResults.contents = deviceTokenResults.contents;
         } else {
-          // Try extension if AppDelegate method not found
-          deviceTokenResults = addVibesDeviceTokenRegistrationExtension(
-            config.modResults.contents,
-          );
-          if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
-            config.modResults.contents = deviceTokenResults.contents;
-          } else {
-            // Add device token methods to AppDelegate if they don't exist
-            deviceTokenResults = addVibesDeviceTokenMethodsToAppDelegate(
-              config.modResults.contents,
-            );
-            if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
-              config.modResults.contents = deviceTokenResults.contents;
-            }
-          }
+          console.warn("⚠️ [iOS Plugin] No existing device token method found in AppDelegate.swift");
         }
       } catch (error: any) {
         if (error.code === "ERR_NO_MATCH") {
@@ -421,12 +331,6 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         config.modResults.contents = removeVibesBridgeDeviceTokenRegistration(
           config.modResults.contents,
         ).contents;
-        config.modResults.contents = removeVibesBridgeDeviceTokenRegistrationExtension(
-          config.modResults.contents,
-        ).contents;
-        config.modResults.contents = removeVibesDeviceTokenMethodsFromAppDelegateObjC(
-          config.modResults.contents,
-        ).contents;
         return config;
       }
 
@@ -443,28 +347,14 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
           config.modResults.contents = configResults.contents;
         }
 
-        // Add device token registration - try both AppDelegate and extension
-        let deviceTokenResults = addVibesBridgeDeviceTokenRegistration(
+        // Add device token registration for Objective-C 
+        const deviceTokenResults = addVibesBridgeDeviceTokenRegistration(
           config.modResults.contents,
         );
         if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
           config.modResults.contents = deviceTokenResults.contents;
         } else {
-          // Try extension if AppDelegate method not found
-          deviceTokenResults = addVibesBridgeDeviceTokenRegistrationExtension(
-            config.modResults.contents,
-          );
-          if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
-            config.modResults.contents = deviceTokenResults.contents;
-          } else {
-            // Add device token methods to AppDelegate if they don't exist
-            deviceTokenResults = addVibesDeviceTokenMethodsToAppDelegateObjC(
-              config.modResults.contents,
-            );
-            if (deviceTokenResults.didMerge || deviceTokenResults.didClear) {
-              config.modResults.contents = deviceTokenResults.contents;
-            }
-          }
+          console.warn("⚠️ [iOS Plugin] No existing device token method found in AppDelegate.mm");
         }
       } catch (error: any) {
         if (error.code === "ERR_NO_MATCH") {
@@ -489,12 +379,15 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
     // Add Vibes keys
     if (props.iosAppId) {
       c.modResults.VibesAppId = props.iosAppId;
+      console.log(`✅ [iOS Plugin] Added VibesAppId: ${props.iosAppId}`);
     }
     if (props.appUrl) {
       c.modResults.VibesApiURL = props.appUrl;
+      console.log(`✅ [iOS Plugin] Added VibesApiURL: ${props.appUrl}`);
     }
     if (props.vibesAppEnv) {
       c.modResults.VibesAppEnv = props.vibesAppEnv;
+      console.log(`✅ [iOS Plugin] Added VibesAppEnv: ${props.vibesAppEnv}`);
     }
     
     // Add push notifications description
@@ -508,13 +401,23 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
     if (!c.modResults.UIBackgroundModes.includes("remote-notification")) {
       c.modResults.UIBackgroundModes.push("remote-notification");
     }
-    
+
     return c;
   });
 
   // Add entitlements
   config = withEntitlementsPlist(config, (c) => {
-    c.modResults["aps-environment"] = "development";
+    // Set aps-environment based on build configuration
+    // For development builds, use "development"
+    // For production builds, use "production"
+    const isDevelopment = process.env.EAS_BUILD_PROFILE === "development" || 
+                         process.env.EAS_BUILD_PROFILE === "preview" ||
+                         !process.env.EAS_BUILD_PROFILE; // local builds
+    
+    c.modResults["aps-environment"] = isDevelopment ? "development" : "production";
+    
+    console.log(`🔧 [iOS Plugin] Setting aps-environment to: ${c.modResults["aps-environment"]} (EAS_BUILD_PROFILE: ${process.env.EAS_BUILD_PROFILE})`);
+    
     return c;
   });
 

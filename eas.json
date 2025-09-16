@@ -6,13 +6,52 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "ANDROID_APP_ID": "$ANDROID_APP_ID",
+        "IOS_APP_ID": "$IOS_APP_ID",
+        "APP_URL": "$APP_URL",
+        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+      },
+      "ios": {
+        "buildConfiguration": "Debug",
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "ANDROID_APP_ID": "$ANDROID_APP_ID",
+        "IOS_APP_ID": "$IOS_APP_ID",
+        "APP_URL": "$APP_URL",
+        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+      },
+      "ios": {
+        "buildConfiguration": "Debug",
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "ANDROID_APP_ID": "$ANDROID_APP_ID",
+        "IOS_APP_ID": "$IOS_APP_ID",
+        "APP_URL": "$APP_URL",
+        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "credentialsSource": "remote",
+        "cache": {
+          "key": "pods-ios-{{ hash }}"
+        }
+      }
     }
   },
   "submit": {

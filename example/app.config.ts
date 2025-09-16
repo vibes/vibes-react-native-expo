@@ -17,9 +17,6 @@ const config: ExpoConfig = {
     bundleIdentifier: "com.vibes.push.test.rn",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false
-    },
-    entitlements: {
-      "aps-environment": "development"
     }
   },
   android: {
@@ -33,7 +30,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     [
-      "vibes-react-native-expo",
+      "../app.plugin.js",
       {
         androidAppId: process.env.ANDROID_APP_ID,
         appUrl: process.env.APP_URL,

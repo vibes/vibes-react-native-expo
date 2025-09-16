@@ -6,58 +6,18 @@ export const MATCH_FINISH_LAUNCHING_METHOD_OBJCPP =
 export const MATCH_FINISH_LAUNCHING_METHOD_SWIFT =
   /\b(return\s+)?super\.application\(\w+?, didFinishLaunchingWithOptions: \w+?\)/g;
 
-// Device token registration patterns
+// Device token registration patterns - more flexible to catch existing methods
 export const MATCH_DEVICE_TOKEN_METHOD_OBJCPP =
   /-\s*\(void\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didRegisterForRemoteNotificationsWithDeviceToken:\s*\(NSData\s*\*\s*\)\s*\w+/g;
 export const MATCH_DEVICE_TOKEN_METHOD_SWIFT =
   /\bfunc\s+application\(\s*_\s+application:\s*UIApplication,\s*didRegisterForRemoteNotificationsWithDeviceToken\s+deviceToken:\s*Data\s*\)/g;
 
-// Extension patterns for device token registration
-export const MATCH_DEVICE_TOKEN_METHOD_EXTENSION_OBJCPP =
-  /-\s*\(void\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didRegisterForRemoteNotificationsWithDeviceToken:\s*\(NSData\s*\*\s*\)\s*\w+\s*\{/g;
-export const MATCH_DEVICE_TOKEN_METHOD_EXTENSION_SWIFT =
-  /\bfunc\s+application\(\s*_\s+application:\s*UIApplication,\s*didRegisterForRemoteNotificationsWithDeviceToken\s+deviceToken:\s*Data\s*\)\s*\{/g;
 
-// Patterns for adding device token method to AppDelegate
-export const MATCH_APP_DELEGATE_CLASS_END_SWIFT = /^\s*}\s*$/gm;
-export const MATCH_APP_DELEGATE_CLASS_END_OBJCPP = /^\s*@end\s*$/gm;
 
 // Device token registration code
 export const REGISTER_DEVICE_TOKEN_OBJCPP = `  [VibesBridge registerDeviceToken:deviceToken];`;
-export const REGISTER_DEVICE_TOKEN_SWIFT = `    Vibes.registerPush()`;
+export const REGISTER_DEVICE_TOKEN_SWIFT = `    Vibes.shared.setPushToken(from: deviceToken)`;
 
-// Device token method to add to AppDelegate
-export const DEVICE_TOKEN_METHOD_SWIFT = `
-  // MARK: - Push Notifications
-  
-  public override func application(
-    _ application: UIApplication,
-    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-  ) {
-    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
-    Vibes.shared.setPushToken(fromData: deviceToken)
-  }
-  
-  public override func application(
-    _ application: UIApplication,
-    didFailToRegisterForRemoteNotificationsWithError error: Error
-  ) {
-    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
-  }
-`;
-
-export const DEVICE_TOKEN_METHOD_OBJCPP = `
-// MARK: - Push Notifications
-
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-  [super application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
-  [VibesBridge registerDeviceToken:deviceToken];
-}
-
-- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
-  [super application:application didFailToRegisterForRemoteNotificationsWithError:error];
-}
-`;
 
 export const getBridgeHeaderObjC = (projectName: string) => `//
 //  VibesBridge.h
@@ -111,13 +71,25 @@ export const getBridgeImplementationObjC = (
 
 + (void)registerDeviceToken:(NSData *)deviceToken
 {
-  // Vibes SDK automatically handles device token registration
-  // iOS automatically passes device token to Vibes SDK
-  // No need to manually register - Vibes SDK handles it automatically
   NSLog(@"Device token received by VibesBridge: %@", deviceToken);
   
-  // Optional: Call Vibes SDK registerPush if needed
-  // This is just for logging - Vibes SDK handles device token automatically
+  // Convert NSData to hex string
+  NSMutableString *token = [NSMutableString string];
+  const char *bytes = [deviceToken bytes];
+  for (NSUInteger i = 0; i < [deviceToken length]; i++) {
+    [token appendFormat:@"%02.2hhx", bytes[i]];
+  }
+  
+  // Set device token in Vibes SDK
+  [Vibes.shared setPushTokenFromData:deviceToken];
+  NSLog(@"🔑 [PUSH_TOKEN] Device token set in Vibes SDK");
+  
+  // Store token in UserDefaults so ExpoVibesSDKModule can retrieve it
+  [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"ExpoVibesSDK_LastDeviceToken"];
+  NSLog(@"🔑 [PUSH_TOKEN] Device token stored in UserDefaults: %@", token);
+  
+  // NOTE: registerPush() should be called manually by the app, not automatically
+  // This follows the official Vibes SDK examples
 }
 
 @end

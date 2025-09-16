@@ -392,9 +392,12 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       let userDefaults = UserDefaults.standard
       let deviceId = userDefaults.string(forKey: "vibesDeviceId") ?? ""
       let isDeviceRegistered = vibes.isDeviceRegistered()
+      // Get push token from UserDefaults (set by VibesBridge)
+      let pushToken = UserDefaults.standard.string(forKey: "ExpoVibesSDK_LastDeviceToken") ?? ExpoVibesSDKModule.lastDeviceToken ?? ""
+      
       let deviceInfo: [String: Any] = [
         "device_id": deviceId,
-        "push_token": ExpoVibesSDKModule.lastDeviceToken ?? "",
+        "push_token": pushToken,
         "is_registered": isDeviceRegistered,
         "is_push_registered": vibes.isDevicePushRegistered(),
         "latitude": "",
@@ -539,9 +542,6 @@ extension UIResponder {
     print("🔑 [PUSH_TOKEN] APNs Device Token: \(token)")
     ExpoVibesSDKModule.lastDeviceToken = token
     
-    // Set device token in Vibes SDK
-    Vibes.shared.setPushToken(fromData: deviceToken)
-    print("🔑 [PUSH_TOKEN] Device token set in Vibes SDK")
   }
 
   @objc
@@ -549,3 +549,4 @@ extension UIResponder {
     print("❌ [PUSH_TOKEN] Failed to register for remote notifications: \(error.localizedDescription)")
   }
 }
+ 
