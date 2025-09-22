@@ -36,7 +36,7 @@ const config: ExpoConfig = {
         appUrl: process.env.APP_URL,
         iosAppId: process.env.IOS_APP_ID,
         vibesAppEnv: process.env.VIBES_APP_ENV || 'UAT',
-        apsEnvironment: process.env.VIBES_APP_ENV || 'development',
+        apsEnvironment: process.env.APP_ENV || 'development',
       },
     ],
     // [
