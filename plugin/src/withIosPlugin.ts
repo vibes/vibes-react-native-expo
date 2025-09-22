@@ -258,7 +258,6 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
   });
   
   console.log(`🔧 [iOS Plugin] Raw props object:`, props);
-  console.log(`🔧 [iOS Plugin] All environment variables:`, process.env);
 
   const sdkVersion = getMajorSdkVersion(config.sdkVersion);
 

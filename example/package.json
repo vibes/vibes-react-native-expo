@@ -15,7 +15,7 @@
     "expo-dev-client": "~4.0.29",
     "react": "18.2.0",
     "react-native": "0.74.5",
-    "vibes-react-native-expo": "0.3.16-internal.19"
+    "vibes-react-native-expo": "0.3.16-internal.20"
   },
   "devDependencies": {
     "@types/react": "~18.2.45",
