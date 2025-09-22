@@ -104,6 +104,7 @@ ANDROID_APP_ID=your-android-app-id-here
 IOS_APP_ID=your-ios-app-id-here
 APP_URL=https://your-vibes-api-url.com/mobile_apps
 VIBES_APP_ENV=UAT
+APP_ENV=development
 ```
 
 
@@ -120,7 +121,9 @@ export default {
          androidAppId: process.env.ANDROID_APP_ID,
          appUrl: process.env.APP_URL,
          iosAppId: process.env.IOS_APP_ID,
-         vibesAppEnv: process.env.VIBES_APP_ENV || "UAT"
+         vibesAppEnv: process.env.VIBES_APP_ENV || "UAT",
+         apsEnvironment: process.env.APP_ENV || "development", // or "production"
+
        },
      ],
    ],
@@ -142,6 +145,7 @@ eas secret:create --name ANDROID_APP_ID --value your-android-app-id
 eas secret:create --name IOS_APP_ID --value your-ios-app-id
 eas secret:create --name APP_URL --value https://your-api-url.com/mobile_apps
 eas secret:create --name VIBES_APP_ENV --value UAT # or PROD
+eas secret:create --name APP_ENV --value development # or "production"
 ```
 
 **Best practice:** Always test your cloud build to ensure variables are passed correctly to your plugin and app config.
@@ -177,7 +181,8 @@ Create or update your `eas.json` file to include development builds:
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
        "IOS_APP_ID": "$IOS_APP_ID",
        "APP_URL": "$APP_URL",
-       "VIBES_APP_ENV": "$VIBES_APP_ENV"
+       "VIBES_APP_ENV": "$VIBES_APP_ENV",
+       "APP_ENV": "$APP_ENV"
      }
    },
    "preview": {
@@ -192,7 +197,8 @@ Create or update your `eas.json` file to include development builds:
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
        "IOS_APP_ID": "$IOS_APP_ID",
        "APP_URL": "$APP_URL",
-       "VIBES_APP_ENV": "$VIBES_APP_ENV"
+       "VIBES_APP_ENV": "$VIBES_APP_ENV",
+       "APP_ENV": "$APP_ENV"
      }
    },
    "production": {
@@ -206,7 +212,8 @@ Create or update your `eas.json` file to include development builds:
        "ANDROID_APP_ID": "$ANDROID_APP_ID",
        "IOS_APP_ID": "$IOS_APP_ID",
        "APP_URL": "$APP_URL",
-       "VIBES_APP_ENV": "$VIBES_APP_ENV"
+       "VIBES_APP_ENV": "$VIBES_APP_ENV",
+       "APP_ENV": "$APP_ENV"
      }
    }
  },
@@ -922,12 +929,13 @@ If you encounter issues during installation:
 
 ## Change log:
 
-0.3.17 (9.18.2025)
+0.3.17 (9.22.2025)
 | Part | Change (added element) |
 |------|----------------------|
-| ### Vibes SDK | Improve iOS plugin resilience for scenarios where AppDelegate modifications from other plugins may cause conflicts |
-| ### Configure the plugin |  apsEnvironment: process.env.VIBES_APP_ENV || "development" |
-
+| ### Vibes SDK | Improve iOS plugin resilience for scenarios where AppDelegate modifications from other plugins may cause conflicts, add some additional app and SDK logs to see push token flow and if variables are properly set |
+| ### 2. Configure the plugin |  apsEnvironment: process.env.APP_ENV |
+| ### 3. Environment Variables | apsEnvironment: process.env.APP_ENV, APP_ENV=development, eas secret:create --name APP_ENV --value development |
+| ### 4. Configure EAS Build | (1) "development": {<br>   "env": {<br>        "APP_ENV": "$APP_ENV"      }<br>    },<br>(2) "preview": {<br>      "env": {<br>        "APP_ENV": "$APP_ENV"<br>      }<br>    },<br>(3) "production": {<br>      "env": {<br>        "APP_ENV": "$APP_ENV"<br>      }<br>    } |
 
 0.3.16 (8.29.2025)
 
@@ -952,7 +960,7 @@ If you encounter issues during installation:
 | ### 1. Install the Package | If you continue to encounter errors while installing the Vibes SDK, you can install it using the --legacy-peer-deps flag to ensure the Expo dependencies compatibility and the SDK is installed correctly<br><br>npm install vibes-react-native-expo --legacy-peer-deps |
 | ### 2. Configure the Plugin | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT" |
 | ### 3. Environment Variables | iosAppId: process.env.IOS_APP_ID<br>vibesAppEnv: process.env.VIBES_APP_ENV || "UAT"<br><br>## Setting Environment Variables for EAS Cloud Build<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT<br><br>### Setting EAS Secrets<br>eas secret:create --name IOS_APP_ID --value your-ios-app-id<br>eas secret:create --name VIBES_APP_ENV --value UAT |
-| ### 4. Configure EAS Build | (1) "development": {<br>      "ios": { "buildConfiguration": "Debug" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(2) "preview": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    },<br>(3) "production": {<br>      "ios": { "buildConfiguration": "Release" }<br>      "env": {<br>        "IOS_APP_ID": "$IOS_APP_ID",<br>        "VIBES_APP_ENV": "$VIBES_APP_ENV"<br>      }<br>    } |
+| ### 4. Configure EAS Build | (1) "development": {<br>      "ios": { "buildConfiguration": "Debug" }<br>      "env": {<br>        "APP_ENV": "$APP_ENV"<br>      }<br>    },<br>(2) "preview": {<br>      "env": {<br>        "APP_ENV": "$APP_ENV"<br>      }<br>    },<br>(3) "production": {<br>      "env": {<br>        "APP_ENV": "$APP_ENV"<br>      }<br>    } |
 | ### 5. Create Development Build | # For iOS development build<br>eas build --profile development --platform ios |
 | ## iOS Configuration Details | ### Automatic Configuration<br><br>The plugin automatically configures the native iOS files during the EAS build process. You don't need to manually edit these files:<br><br>#### Info.plist<br>The plugin automatically adds these keys:<br><br><key>VibesAppId</key><br><string>$(VIBES_APP_ID)</string><br><key>VibesApiUrl</key><br><string>$(VIBES_API_URL)</string><br><key>VibesAppEnv</key><br><string>$(VIBES_APP_ENV)</string><br><br>#### AppDelegate.swift<br>The plugin automatically initializes the Vibes SDK:<br><br>import VibesSDK<br><br>// In your AppDelegate.swift<br>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {<br>   // Vibes SDK is automatically initialized<br>   return true<br>} |
 | ## Minimum Requirements | ### iOS<br>- iOS Version: 13.0+<br>- Xcode Version: 15.0+<br>- Swift Version: 5.0+ |

@@ -11,7 +11,8 @@
         "ANDROID_APP_ID": "$ANDROID_APP_ID",
         "IOS_APP_ID": "$IOS_APP_ID",
         "APP_URL": "$APP_URL",
-        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+        "VIBES_APP_ENV": "$VIBES_APP_ENV",
+        "APP_ENV": "$APP_ENV"
       },
       "ios": {
         "buildConfiguration": "Debug",
@@ -27,7 +28,8 @@
         "ANDROID_APP_ID": "$ANDROID_APP_ID",
         "IOS_APP_ID": "$IOS_APP_ID",
         "APP_URL": "$APP_URL",
-        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+        "VIBES_APP_ENV": "$VIBES_APP_ENV",
+        "APP_ENV": "$APP_ENV"
       },
       "ios": {
         "buildConfiguration": "Debug",
@@ -43,7 +45,8 @@
         "ANDROID_APP_ID": "$ANDROID_APP_ID",
         "IOS_APP_ID": "$IOS_APP_ID",
         "APP_URL": "$APP_URL",
-        "VIBES_APP_ENV": "$VIBES_APP_ENV"
+        "VIBES_APP_ENV": "$VIBES_APP_ENV",
+        "APP_ENV": "$APP_ENV"
       },
       "ios": {
         "buildConfiguration": "Release",
