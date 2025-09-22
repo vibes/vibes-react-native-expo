@@ -3,4 +3,5 @@ export type ConfigPluginProps = {
   androidAppId?: string;
   appUrl?: string;
   vibesAppEnv?: string;
+  apsEnvironment?: string;
 };

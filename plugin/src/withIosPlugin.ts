@@ -407,16 +407,17 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
 
   // Add entitlements
   config = withEntitlementsPlist(config, (c) => {
-    // Set aps-environment based on build configuration
-    // For development builds, use "development"
-    // For production builds, use "production"
-    const isDevelopment = process.env.EAS_BUILD_PROFILE === "development" || 
-                         process.env.EAS_BUILD_PROFILE === "preview" ||
-                         !process.env.EAS_BUILD_PROFILE; // local builds
-    
-    c.modResults["aps-environment"] = isDevelopment ? "development" : "production";
-    
-    console.log(`🔧 [iOS Plugin] Setting aps-environment to: ${c.modResults["aps-environment"]} (EAS_BUILD_PROFILE: ${process.env.EAS_BUILD_PROFILE})`);
+    // Set aps-environment from plugin props
+    if (props.apsEnvironment) {
+      c.modResults["aps-environment"] = props.apsEnvironment;
+    } else {
+      // Fallback to automatic detection if not specified
+      const isDevelopment = process.env.EAS_BUILD_PROFILE === "development" || 
+                           process.env.EAS_BUILD_PROFILE === "preview" ||
+                           !process.env.EAS_BUILD_PROFILE; // local builds
+      
+      c.modResults["aps-environment"] = isDevelopment ? "development" : "production";
+    }
     
     return c;
   });

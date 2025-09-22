@@ -16,6 +16,7 @@
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug",
         "credentialsSource": "remote",
+     
         "cache": {
           "key": "pods-ios-{{ hash }}"
         }
@@ -51,7 +52,7 @@
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug",
-        "credentialsSource": "remote",
+        "credentialsSource": "local",
         "cache": {
           "key": "pods-ios-{{ hash }}"
         }

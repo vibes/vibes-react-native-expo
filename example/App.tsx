@@ -61,14 +61,24 @@ export default function App() {
   const handleRegisterPush = async () => {
     try {
       setIsLoadingRegisterPush(true);
+      
+      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
+      if (!deviceInfo.is_registered) {
+        setPushStatus("Error: Device must be registered first");
+        console.log("❌ Error: Device must be registered first");
+        return;
+      }
+      
+      console.log("🔔 Requesting notification permissions...");
+      await ExpoVibesSDK.requestNotificationPermissions();
+      
       await ExpoVibesSDK.registerPush();
       setPushStatus("Push registration successful");
       console.log("✅ Push registration successful");
       
-      // Get push token
-      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
-      setPushToken(deviceInfo.push_token || "");
-      console.log("📱 Push token obtained:", deviceInfo.push_token);
+      const updatedDeviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
+      setPushToken(updatedDeviceInfo.push_token || "");
+      console.log("📱 Push token obtained:", updatedDeviceInfo.push_token);
     } catch (e) {
       setPushStatus("Error registering push: " + String(e));
       console.log("❌ Error registering push:", e);
@@ -76,7 +86,6 @@ export default function App() {
       setIsLoadingRegisterPush(false);
     }
   };
-
 
 
   return (

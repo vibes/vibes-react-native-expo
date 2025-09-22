@@ -74,6 +74,7 @@ export default {
          appUrl: process.env.APP_URL,
          iosAppId: process.env.IOS_APP_ID,
          vibesAppEnv: process.env.VIBES_APP_ENV || "UAT",
+         apsEnvironment: process.env.VIBES_APP_ENV || "development", // or "production"
        },
      ],
    ],
@@ -920,6 +921,12 @@ If you encounter issues during installation:
 
 
 ## Change log:
+
+0.3.17 (9.18.2025)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Improve iOS plugin resilience for scenarios where AppDelegate modifications from other plugins may cause conflicts |
+| ### Configure the plugin |  apsEnvironment: process.env.VIBES_APP_ENV || "development" |
 
 
 0.3.16 (8.29.2025)

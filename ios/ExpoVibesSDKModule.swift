@@ -109,11 +109,31 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
       
       if vibes.isDeviceRegistered() {
         self.logPushNotification("Device is registered, proceeding with push registration")
-        
-        vibes.registerPush()
+        self.logPushNotification("Vibes delegate set: \(vibes.delegate != nil)")
         
         // Store the promise to resolve when didRegisterPush delegate is called
         self.pendingRegisterPushPromise = promise
+        
+        vibes.registerPush()
+        
+        // Add timeout fallback - if delegate doesn't respond in 5 seconds, check status manually
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+          if self.pendingRegisterPushPromise != nil {
+            self.logPushNotification("WARNING: Push registration delegate timeout, checking status manually", type: "WARNING")
+            
+            // Check if push is actually registered despite delegate not being called
+            let vibes = VibesClient.standard.vibes
+            if vibes.isDevicePushRegistered() {
+              self.logPushNotification("SUCCESS: Push registration successful (verified by status check)", type: "SUCCESS")
+              self.pendingRegisterPushPromise?.resolve("Push registration successful")
+              self.pendingRegisterPushPromise = nil
+            } else {
+              self.logPushNotification("ERROR: Push registration failed (verified by status check)", type: "ERROR")
+              self.pendingRegisterPushPromise?.reject("PUSH_REGISTRATION_ERROR", "Push registration failed - timeout")
+              self.pendingRegisterPushPromise = nil
+            }
+          }
+        }
       } else {
         self.logPushNotification("ERROR: Device Not Registered - \(VibesError.noCredentials)", type: "ERROR")
         print("REGISTER_PUSH_ERROR", "Device Not Registered: \(VibesError.noCredentials)")
@@ -513,12 +533,24 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
   
   public func didRegisterPush(error: Error?) {
     self.logPushNotification("=== VIBES DELEGATE: didRegisterPush ===")
+    self.logPushNotification("Delegate called with error: \(error?.localizedDescription ?? "nil")")
+    self.logPushNotification("Pending promise exists: \(pendingRegisterPushPromise != nil)")
     
     if let error = error {
       self.logPushNotification("ERROR: Push registration failed - \(error.localizedDescription)", type: "ERROR")
       print("ERROR: Push registration failed - \(error.localizedDescription)")
-      // Resolve the pending promise with error
-      pendingRegisterPushPromise?.reject("PUSH_REGISTRATION_ERROR", error.localizedDescription)
+      
+      // Check if push is actually registered despite the error
+      let vibes = VibesClient.standard.vibes
+      let isActuallyRegistered = vibes.isDevicePushRegistered()
+      self.logPushNotification("Push actually registered despite error: \(isActuallyRegistered)")
+      
+      if isActuallyRegistered {
+        self.logPushNotification("SUCCESS: Push registration successful (despite delegate error)", type: "SUCCESS")
+        pendingRegisterPushPromise?.resolve("Push registration successful")
+      } else {
+        pendingRegisterPushPromise?.reject("PUSH_REGISTRATION_ERROR", error.localizedDescription)
+      }
       pendingRegisterPushPromise = nil
     } else {
       self.logPushNotification("SUCCESS: Push registration successful", type: "SUCCESS")
