@@ -1,6 +1,6 @@
 {
   "name": "vibes-react-native-expo",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "Expo module for Vibes Android & iOS SDK integration",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -28,7 +28,9 @@
   "license": "MIT",
   "homepage": "https://github.com/vibes/vibes-react-native-expo#readme",
   "dependencies": {
-    "expo-dev-client": "~4.0.29"
+    "@types/fs-extra": "^11.0.4",
+    "expo-dev-client": "~4.0.29",
+    "fs-extra": "^11.3.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.6",

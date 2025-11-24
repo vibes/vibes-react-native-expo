@@ -8,8 +8,8 @@ import {
 } from "@expo/config-plugins";
 
 import type { ConfigPluginProps } from "./types";
-import path from "path";
-import fs from "fs";
+import * as fs from "fs-extra";
+import * as path from "path";
 
 // Add manifest placeholders to build.gradle
 const addPlaceholders = (
@@ -98,6 +98,55 @@ const addMetaTags = (application: any, includeCustomUrl?: boolean): void => {
   }
 };
 
+
+const addLocalMavenRepo = (buildGradle: string): string => {
+  if (buildGradle.includes("./libs/maven")) {
+    console.log(
+      "Local maven repository already configured in android/build.gradle",
+    );
+    return buildGradle;
+  }
+
+  const mavenRepoSnippet = `        maven {
+            url new File(rootProject.projectDir, './libs/maven').absolutePath
+        }`;
+
+  const allProjectsRegex =
+    /(allprojects\s*\{\s*repositories\s*\{)([\s\S]*?)(\n\s*\}\s*\n\s*\})/;
+
+  if (allProjectsRegex.test(buildGradle)) {
+    buildGradle = buildGradle.replace(
+      allProjectsRegex,
+      (match, before, repositories, after) => {
+        return `${before}${repositories}\n${mavenRepoSnippet}${after}`;
+      },
+    );
+
+    console.log("Added local maven repository to android/build.gradle");
+  } else {
+    const repositoriesRegex =
+      /(repositories\s*\{[\s\S]*?)(\n\s*\}\s*(?=\n\s*\}))/;
+
+    if (repositoriesRegex.test(buildGradle)) {
+      buildGradle = buildGradle.replace(
+        repositoriesRegex,
+        (match, before, after) => {
+          return `${before}\n${mavenRepoSnippet}${after}`;
+        },
+      );
+      console.log(
+        "Added local maven repository to android/build.gradle (fallback method)",
+      );
+    } else {
+      console.warn(
+        "Could not find allprojects/repositories block in android/build.gradle",
+      );
+    }
+  }
+
+  return buildGradle;
+};
+
 const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
   const appId = props?.androidAppId;
   const appUrl = props?.appUrl;
@@ -146,7 +195,6 @@ const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
 apply plugin: "com.google.gms.google-services"`
       );
     }
-    // Dodaj dependency Firebase
     if (!config.modResults.contents.includes('firebase-core')) {
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies \{/, 
@@ -158,7 +206,6 @@ apply plugin: "com.google.gms.google-services"`
     return config;
   });
 
-  // Dodaj classpath do google-services w project build.gradle
   config = withProjectBuildGradle(config, (config) => {
     if (!config.modResults.contents.includes('com.google.gms:google-services')) {
       config.modResults.contents = config.modResults.contents.replace(
@@ -250,7 +297,43 @@ apply plugin: "com.google.gms.google-services"`
     return config;
   });
 
+  config = withDangerousMod(config, [
+    "android",
+    async (config) => {
+      const projectRoot = config.modRequest.projectRoot;
+      const androidProjectRoot = path.join(projectRoot, "android");
+
+      const pluginLibsPath = path.join(__dirname, "..", "libs");
+
+      const androidLibsPath = path.join(androidProjectRoot, "libs");
+
+      if (await fs.pathExists(pluginLibsPath)) {
+        await fs.copy(pluginLibsPath, androidLibsPath, {
+          overwrite: true,
+        });
+        console.log(`Copied local maven repo directory to ${androidLibsPath}`);
+      } else {
+        console.warn(
+          `Local maven repo directory not found at ${pluginLibsPath}`,
+        );
+      }
+
+      return config;
+    },
+  ]);
+
+  config = withProjectBuildGradle(config, (config) => {
+    if (config.modResults.language === "groovy") {
+      config.modResults.contents = addLocalMavenRepo(
+        config.modResults.contents,
+      );
+    }
+    return config;
+  });
+
   return config;
 };
+
+
 
 export default withAndroidPlugin;

@@ -53,14 +53,9 @@ repositories {
 }
 
 dependencies {
-  implementation files('libs/vibes-android-push-sdk-4.12.4.aar')
+  api 'com.vibes:vibes-android-push-sdk:4.12.5'
 
-  // Vibes package dependencies from the POM file
-  implementation 'androidx.preference:preference:1.1.1'
-  implementation 'androidx.appcompat:appcompat:1.2.0'
-  implementation 'com.google.code.gson:gson:2.8.6'
-
-  implementation 'com.google.firebase:firebase-messaging:23.4.1'
-  implementation 'com.google.firebase:firebase-core:21.1.1'
+  api 'com.google.firebase:firebase-messaging:23.4.1'
+  api 'com.google.firebase:firebase-core:21.1.1'
 }
 

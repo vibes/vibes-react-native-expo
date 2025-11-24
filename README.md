@@ -929,6 +929,11 @@ If you encounter issues during installation:
 
 ## Change log:
 
+0.3.18 (11.24.2025)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Fixed Android EAS build .aar file error by implementing maven local repo workaround and also updated AAR of Android SDK - it fixes double promise issue |
+
 0.3.17 (9.22.2025)
 | Part | Change (added element) |
 |------|----------------------|

@@ -68,10 +68,10 @@ export default function App() {
         console.log("❌ Error: Device must be registered first");
         return;
       }
-      
       console.log("🔔 Requesting notification permissions...");
       await ExpoVibesSDK.requestNotificationPermissions();
       
+  
       await ExpoVibesSDK.registerPush();
       setPushStatus("Push registration successful");
       console.log("✅ Push registration successful");
