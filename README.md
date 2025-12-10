@@ -929,6 +929,11 @@ If you encounter issues during installation:
 
 ## Change log:
 
+0.3.19 (12.10.2025)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Added `mainImage` and `iconImage` to messages received from `fetchInboxMessage` and `fetchInboxMessages` functions |
+
 0.3.18 (11.24.2025)
 | Part | Change (added element) |
 |------|----------------------|

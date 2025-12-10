@@ -9,6 +9,16 @@ export type ExpoVibesSDKModuleEvents = {
   onInboxMessagesFetchedEvent: (params: InboxMessagesFetchedEventPayload) => void;
 };
 
+export type Message = {
+  id: string;
+  title: string;
+  body: string;
+  mainImage: string;
+  iconImage: string;
+  read: boolean;
+  expired: boolean;
+};
+
 export type ChangeEventPayload = {
   value: string;
 };
@@ -18,23 +28,11 @@ export type GetPersonEventPayload = {
 };
 
 export type FetchInboxMessagesEventPayload = {
-  messages: Array<{
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  }>;
+  messages: Message[];
 };
 
 export type FetchInboxMessageEventPayload = {
-  message: {
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  };
+  message: Message;
 };
 
 export type MarkInboxMessageAsReadEventPayload = {
@@ -63,20 +61,8 @@ export interface ExpoVibesSDKModuleInterface {
   associatePerson(externalPersonId: string): Promise<string>;
   updateDevice(updateCredentials: boolean, lat: number, lon: number): Promise<string>;
   getPerson(): Promise<string>;
-  fetchInboxMessages(): Promise<Array<{
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  }>>;
-  fetchInboxMessage(messageId: string): Promise<{
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  }>;
+  fetchInboxMessages(): Promise<Message[]>;
+  fetchInboxMessage(messageId: string): Promise<Message>;
   markInboxMessageAsRead(messageId: string): Promise<string>;
   expireInboxMessage(messageId: string): Promise<string>;
   onInboxMessageOpen(messageId: string): Promise<string>;

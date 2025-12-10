@@ -183,6 +183,8 @@ class ExpoVibesSDKModule : Module() {
               "title" to message.subject,
               "body" to message.content,
               "read" to (message.read ?: false),
+              "mainImage" to message.mainImage,
+              "iconImage" to message.iconImage,
               "expired" to (message.expirationDate?.before(java.util.Date()) ?: false)
             )
           }
@@ -203,6 +205,8 @@ class ExpoVibesSDKModule : Module() {
             "title" to message.subject,
             "body" to message.content,
             "read" to (message.read ?: false),
+            "mainImage" to message.mainImage,
+            "iconImage" to message.iconImage,
             "expired" to (message.expirationDate?.before(java.util.Date()) ?: false)
           )
           sendEvent("onFetchInboxMessage", mapOf("message" to messageData))

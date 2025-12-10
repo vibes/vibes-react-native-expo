@@ -1,10 +1,8 @@
 import { NativeModule, requireNativeModule } from "expo";
-
-import { ExpoVibesSDKModuleEvents, ExpoVibesSDKModuleInterface } from "./ExpoVibesSDK.types";
+import { ExpoVibesSDKModuleEvents, ExpoVibesSDKModuleInterface, Message } from "./ExpoVibesSDK.types";
 
 declare class ExpoVibesSDKModule extends NativeModule<ExpoVibesSDKModuleEvents> implements ExpoVibesSDKModuleInterface {
   SDKBuildVersion: string;
-  
   initializeVibes(): Promise<void>;
   registerDevice(): Promise<string>;
   unregisterDevice(): Promise<string>;
@@ -13,20 +11,8 @@ declare class ExpoVibesSDKModule extends NativeModule<ExpoVibesSDKModuleEvents> 
   associatePerson(externalPersonId: string): Promise<string>;
   updateDevice(updateCredentials: boolean, lat: number, lon: number): Promise<string>;
   getPerson(): Promise<string>;
-  fetchInboxMessages(): Promise<Array<{
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  }>>;
-  fetchInboxMessage(messageId: string): Promise<{
-    id: string;
-    title: string;
-    body: string;
-    read: boolean;
-    expired: boolean;
-  }>;
+  fetchInboxMessages(): Promise<Message[]>;
+  fetchInboxMessage(messageId: string): Promise<Message>;
   markInboxMessageAsRead(messageId: string): Promise<string>;
   expireInboxMessage(messageId: string): Promise<string>;
   onInboxMessageOpen(messageId: string): Promise<string>;

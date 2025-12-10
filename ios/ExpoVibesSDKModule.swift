@@ -220,6 +220,8 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
             "title": message.subject ?? "",
             "body": message.content ?? "",
             "read": message.read,
+            "mainImage": message.mainImage,
+            "iconImage": message.iconImage,
             "expired": (message.expiresAt?.compare(Date()) == .orderedAscending) ?? false
           ]
         }
@@ -247,7 +249,9 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
           "title": message.subject ?? "",
           "body": message.content ?? "",
           "read": message.read,
-                      "expired": (message.expiresAt?.compare(Date()) == .orderedAscending) ?? false
+          "mainImage": message.mainImage,
+          "iconImage": message.iconImage,
+          "expired": (message.expiresAt?.compare(Date()) == .orderedAscending) ?? false
         ]
         
         self.sendEvent("onFetchInboxMessage", ["message": mappedMessage])
