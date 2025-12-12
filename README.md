@@ -929,6 +929,11 @@ If you encounter issues during installation:
 
 ## Change log:
 
+0.3.21 (12.12.2025)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Added `inboxCustomData` to messages received from `fetchInboxMessage` and `fetchInboxMessages` functions |
+
 0.3.20 (12.10.2025)
 | Part | Change (added element) |
 |------|----------------------|

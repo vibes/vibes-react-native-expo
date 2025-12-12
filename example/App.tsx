@@ -2,6 +2,7 @@ import ExpoVibesSDK from "vibes-react-native-expo";
 import { Button, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { useState } from "react";
 import React from "react";
+import { PermissionsAndroid, Platform } from "react-native";
 
 export default function App() {
   const [sdkVersion, setSdkVersion] = useState<string>("");
@@ -61,6 +62,9 @@ export default function App() {
   const handleRegisterPush = async () => {
     try {
       setIsLoadingRegisterPush(true);
+      if (Platform.OS === 'android') {
+        PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+      }
       
       const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
       if (!deviceInfo.is_registered) {
@@ -68,10 +72,12 @@ export default function App() {
         console.log("❌ Error: Device must be registered first");
         return;
       }
+
       console.log("🔔 Requesting notification permissions...");
-      await ExpoVibesSDK.requestNotificationPermissions();
-      
-  
+      if (Platform.OS === 'ios') {
+        await ExpoVibesSDK.requestNotificationPermissions();
+      }
+
       await ExpoVibesSDK.registerPush();
       setPushStatus("Push registration successful");
       console.log("✅ Push registration successful");

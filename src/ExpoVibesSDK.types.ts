@@ -15,6 +15,7 @@ export type Message = {
   body: string;
   mainImage: string;
   iconImage: string;
+  inboxCustomData: any;
   read: boolean;
   expired: boolean;
 };

@@ -222,6 +222,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
             "read": message.read,
             "mainImage": message.mainImage,
             "iconImage": message.iconImage,
+            "inboxCustomData": message.inboxCustomData,
             "expired": (message.expiresAt?.compare(Date()) == .orderedAscending) ?? false
           ]
         }
@@ -251,6 +252,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
           "read": message.read,
           "mainImage": message.mainImage,
           "iconImage": message.iconImage,
+          "inboxCustomData": message.inboxCustomData,
           "expired": (message.expiresAt?.compare(Date()) == .orderedAscending) ?? false
         ]
         
