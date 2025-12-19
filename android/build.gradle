@@ -54,7 +54,7 @@ repositories {
 
 dependencies {
   api 'com.vibes:vibes-android-push-sdk:4.12.5'
-
+  api "com.facebook.react:react-native:+"
   api 'com.google.firebase:firebase-messaging:23.4.1'
   api 'com.google.firebase:firebase-core:21.1.1'
 }

@@ -33,6 +33,7 @@ import {
 } from "./iosNativeContent";
 import type { ConfigPluginProps } from "./types";
 import { getMajorSdkVersion } from "./utils";
+import { addAppDelegateDeepLinking, addVibesPushEmitter } from "./deeplinking";
 
 // Add import for VibesPush
 export function addVibesPackageImport(src: string): MergeResults {
@@ -167,7 +168,6 @@ export function removeVibesBridgeDeviceTokenRegistration(src: string): MergeResu
 }
 
 
-
 // Creates VibesBridge files
 const withVibesBridgeFiles: ConfigPlugin<ConfigPluginProps> = (
   config,
@@ -256,7 +256,7 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
     appUrl: appUrl,
     vibesAppEnv: props?.vibesAppEnv
   });
-  
+
   console.log(`🔧 [iOS Plugin] Raw props object:`, props);
 
   const sdkVersion = getMajorSdkVersion(config.sdkVersion);
@@ -267,8 +267,8 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
 
   if (sdkVersion <= 52) {
     config = withVibesBridgeFiles(config, props);
-
     config = withVibesBridgeXcodeProject(config, props);
+    config = addVibesPushEmitter(config, props)
   }
 
   config = withAppDelegate(config, (config) => {
@@ -314,7 +314,7 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         if (error.code === "ERR_NO_MATCH") {
           throw new Error(
             `Cannot add Vibes package configuration to the project's AppDelegate.swift because it's malformed. ` +
-              `Please report this issue with a copy of your AppDelegate.`,
+            `Please report this issue with a copy of your AppDelegate.`,
           );
         }
         throw error;
@@ -359,10 +359,18 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         if (error.code === "ERR_NO_MATCH") {
           throw new Error(
             `Cannot add Vibes configuration bridge to the project's AppDelegate.mm because it's malformed. ` +
-              `Please report this issue with a copy of your AppDelegate.`,
+            `Please report this issue with a copy of your AppDelegate.`,
           );
         }
         throw error;
+      }
+
+      try {
+        // Add deep linking code to AppDelegate.mm
+        config = addAppDelegateDeepLinking(config);
+      }
+      catch (error: any) {
+        console.error(`❌ [iOS Plugin] Error adding deep linking code to AppDelegate.mm: ${error.message}`);
       }
     } else {
       throw new Error(
@@ -388,11 +396,11 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
       c.modResults.VibesAppEnv = props.vibesAppEnv;
       console.log(`✅ [iOS Plugin] Added VibesAppEnv: ${props.vibesAppEnv}`);
     }
-    
+
     // Add push notifications description
     c.modResults.NSPushNotificationsUsageDescription =
       "This app uses push notifications to keep you updated.";
-    
+
     // Add background modes
     if (!c.modResults.UIBackgroundModes) {
       c.modResults.UIBackgroundModes = [];
@@ -411,13 +419,13 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
       c.modResults["aps-environment"] = props.apsEnvironment;
     } else {
       // Fallback to automatic detection if not specified
-      const isDevelopment = process.env.EAS_BUILD_PROFILE === "development" || 
-                           process.env.EAS_BUILD_PROFILE === "preview" ||
-                           !process.env.EAS_BUILD_PROFILE; // local builds
-      
+      const isDevelopment = process.env.EAS_BUILD_PROFILE === "development" ||
+        process.env.EAS_BUILD_PROFILE === "preview" ||
+        !process.env.EAS_BUILD_PROFILE; // local builds
+
       c.modResults["aps-environment"] = isDevelopment ? "development" : "production";
     }
-    
+
     return c;
   });
 

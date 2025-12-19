@@ -1,8 +1,8 @@
 import ExpoVibesSDK from "vibes-react-native-expo";
 import { Button, SafeAreaView, ScrollView, Text, View } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
-import { PermissionsAndroid, Platform } from "react-native";
+import { PermissionsAndroid, Platform, NativeEventEmitter, NativeModules, DeviceEventEmitter } from "react-native";
 
 export default function App() {
   const [sdkVersion, setSdkVersion] = useState<string>("");
@@ -15,6 +15,23 @@ export default function App() {
   const [pushToken, setPushToken] = useState<string>("");
   const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
 
+  const onPushReceived = (event) => {
+    console.log('Push received', event.payload)  
+  };
+
+  const onPushOpened = async (event) => {
+    console.log('Push opened', event.payload)  
+  };
+
+  const addEventListeners = () => {
+    console.log("Creating event listeners");
+    const eventEmitter = Platform.OS === 'ios' ? new NativeEventEmitter(NativeModules.VibesPushEmitter) : DeviceEventEmitter;
+        eventEmitter.addListener('pushReceived', onPushReceived);
+        eventEmitter.addListener('pushOpened', onPushOpened);
+  }
+  useEffect(() => {
+    addEventListeners()
+  }, []);
 
   const handleGetSDKVersion = async () => {
     try {

@@ -3,45 +3,46 @@ package expo.modules.vibessdk
 import android.app.Application
 import android.content.Context
 import com.vibes.vibes.PushPayloadParser
-import org.json.JSONObject
-import java.util.HashMap
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.modules.core.DeviceEventManagerModule
 
-internal class PushEvtEmitter(private val context: Context) {
+internal class PushEvtEmitter(private val context: ReactContext) {
     private val appHelper: VibesAppHelper
-
     init {
         this.appHelper = VibesAppHelper(context.applicationContext as Application)
     }
 
-    fun sendEvent(eventName: String, params: Map<String, Any>?, callback: (Boolean) -> Unit) {
-        try {
-            val event = HashMap<String, Any>()
-            event["eventName"] = eventName
-            params?.let { event["params"] = it }
-            callback(true)
-        } catch (e: Exception) {
-            callback(false)
-        }
+    fun sendEvent(eventName: String, params: WritableMap){
+        val eventEmitter = context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        eventEmitter.emit(eventName, params)
     }
 
-    fun notifyPushReceived(bundle: PushPayloadParser, callback: (Boolean) -> Unit) {
+    fun notifyPushReceived(bundle: PushPayloadParser) {
         val payload = bundle.map
-        val params = HashMap<String, Any>()
-        params["payload"] = payload
-        sendEvent("pushReceived", params, callback)
+        val params = Arguments.createMap()
+        params.putMap("payload", convertMap(payload))
+        sendEvent("pushReceived", params)
     }
 
-    fun notifyPushOpened(bundle: PushPayloadParser, callback: (Boolean) -> Unit) {
+    fun notifyPushOpened(bundle: PushPayloadParser) {
         appHelper.invokeApp()
         val payload = bundle.map
-        val params = HashMap<String, Any>()
-        params["payload"] = payload
-        sendEvent("pushOpened", params, callback)
+        val params = Arguments.createMap()
+        params.putMap("payload", convertMap(payload))
+        sendEvent("pushOpened", params)
     }
 
     companion object {
-        fun convertMap(data: Map<String, String>): Map<String, Any> {
-            return data.mapValues { it.value }
+        fun convertMap(data: MutableMap<String?, String?>): WritableMap {
+            val jsonString: String? = null
+            val map: WritableMap = WritableNativeMap()
+            for (entry in data.entries) {
+                map.putString(entry.key!!, entry.value)
+            }
+            return map
         }
     }
 }

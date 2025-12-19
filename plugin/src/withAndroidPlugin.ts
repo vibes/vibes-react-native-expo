@@ -5,6 +5,7 @@ import {
   withMainApplication,
   withProjectBuildGradle,
   withDangerousMod,
+  withMainActivity,
 } from "@expo/config-plugins";
 
 import type { ConfigPluginProps } from "./types";
@@ -292,6 +293,25 @@ apply plugin: "com.google.gms.google-services"`
       modResults.contents = modResults.contents.replace(
         /super\.onCreate\(\)/,
         `super.onCreate()\n    // Initialize Firebase\n    FirebaseApp.initializeApp(this)`
+      );
+    }
+    return config;
+  });
+
+  config = withMainActivity(config, (config) => {
+    const { modResults } = config;
+    if (!modResults.contents.includes('VibesPushReceiver.handlePushOpened')) {
+      // Add receiver import
+      if (!modResults.contents.includes('import expo.modules.vibessdk.VibesPushReceiver')) {
+        modResults.contents = modResults.contents.replace(
+          /import expo\.modules\.ReactActivityDelegateWrapper/,
+          `import expo\.modules\.ReactActivityDelegateWrapper\nimport expo.modules.vibessdk.VibesPushReceiver`
+        );
+      }
+
+      modResults.contents = modResults.contents.replace(
+        /super\.onCreate\(null\)/,
+        `super.onCreate(null)\n    VibesPushReceiver.handlePushOpened(applicationContext, intent)`
       );
     }
     return config;

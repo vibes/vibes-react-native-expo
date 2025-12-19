@@ -695,13 +695,32 @@ const updateDeviceInfo = async (latitude: number, longitude: number) => {
 };
 ```
 
+### Notification Events (Deep linking)
+
+```typescript
+import {NativeEventEmitter, NativeModules, DeviceEventEmitter } from 'react-native';
+
+const onPushReceived = (event) => {
+  console.log('Push received', event.payload)  
+};
+
+const onPushOpened = async (event) => {
+  console.log('Push opened', event.payload)  
+};
+
+const addEventListeners = () => {
+  const eventEmitter = Platform.OS === 'ios' ? new NativeEventEmitter(NativeModules.VibesPushEmitter) : DeviceEventEmitter;
+  eventEmitter.addListener('pushReceived', onPushReceived);
+  eventEmitter.addListener('pushOpened', onPushOpened);
+}
+```
 
 ### Complete Example App
 
 
 ```typescript
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert, ScrollView } from 'react-native';
+import { View, Text, Button, Alert, ScrollView, NativeEventEmitter, NativeModules, DeviceEventEmitter } from 'react-native';
 import ExpoVibesSDK from 'vibes-react-native-expo';
 
 
@@ -709,9 +728,24 @@ export default function VibesExampleApp() {
  const [user, setUser] = useState<string | null>(null);
  const [messages, setMessages] = useState<any[]>([]);
 
+ const onPushReceived = (event) => {
+   console.log('Push received', event.payload)  
+ };
+
+ const onPushOpened = async (event) => {
+   console.log('Push opened', event.payload)  
+ };
+
+ const addEventListeners = () => {
+   const eventEmitter = Platform.OS === 'ios' ? new NativeEventEmitter(NativeModules.VibesPushEmitter) : DeviceEventEmitter;
+   eventEmitter.addListener('pushReceived', onPushReceived);
+   eventEmitter.addListener('pushOpened', onPushOpened);
+ }
+
 
  useEffect(() => {
    initializeVibes();
+   addEventListeners()
  }, []);
 
 
@@ -928,6 +962,11 @@ If you encounter issues during installation:
 
 
 ## Change log:
+
+0.3.22 (12.19.2025)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Added notification received and opened events for deep linking |
 
 0.3.21 (12.12.2025)
 | Part | Change (added element) |

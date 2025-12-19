@@ -117,5 +117,3 @@ export const getOptionalConfigLinesSwift = (appId: string, appUrl: string) => [
 
 export const getConfigLineSwift = (appId: string) =>
   `    Vibes.configure(appId: "${appId}")`;
-
- 
