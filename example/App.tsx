@@ -16,11 +16,11 @@ export default function App() {
   const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
 
   const onPushReceived = (event) => {
-    console.log('Push received', event.payload)  
+    console.log('Push received', event)  
   };
 
   const onPushOpened = async (event) => {
-    console.log('Push opened', event.payload)  
+    console.log('Push opened', event)  
   };
 
   const addEventListeners = () => {
@@ -80,7 +80,7 @@ export default function App() {
     try {
       setIsLoadingRegisterPush(true);
       if (Platform.OS === 'android') {
-        PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
       }
       
       const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();

@@ -701,11 +701,11 @@ const updateDeviceInfo = async (latitude: number, longitude: number) => {
 import {NativeEventEmitter, NativeModules, DeviceEventEmitter } from 'react-native';
 
 const onPushReceived = (event) => {
-  console.log('Push received', event.payload)  
+  console.log('Push received', event)  
 };
 
 const onPushOpened = async (event) => {
-  console.log('Push opened', event.payload)  
+  console.log('Push opened', event)  
 };
 
 const addEventListeners = () => {
@@ -729,11 +729,11 @@ export default function VibesExampleApp() {
  const [messages, setMessages] = useState<any[]>([]);
 
  const onPushReceived = (event) => {
-   console.log('Push received', event.payload)  
+   console.log('Push received', event)  
  };
 
  const onPushOpened = async (event) => {
-   console.log('Push opened', event.payload)  
+   console.log('Push opened', event)  
  };
 
  const addEventListeners = () => {
@@ -962,6 +962,16 @@ If you encounter issues during installation:
 
 
 ## Change log:
+
+0.3.26 (2.17.2026)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Added prebuild logs for Android |
+
+0.3.24 (1.28.2026)
+| Part | Change (added element) |
+|------|----------------------|
+| ### Vibes SDK | Fix for missing credentials error on Android |
 
 0.3.22 (12.19.2025)
 | Part | Change (added element) |

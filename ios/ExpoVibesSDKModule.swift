@@ -62,7 +62,7 @@ public class ExpoVibesSDKModule: Module, VibesAPIDelegate {
     }
 
     Constants([
-      "SDKBuildVersion": "0.3.16",
+      "SDKBuildVersion": "0.3.26",
     ])
 
     let userDefaults = UserDefaults.standard

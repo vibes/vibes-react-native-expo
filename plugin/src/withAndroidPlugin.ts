@@ -103,7 +103,7 @@ const addMetaTags = (application: any, includeCustomUrl?: boolean): void => {
 const addLocalMavenRepo = (buildGradle: string): string => {
   if (buildGradle.includes("./libs/maven")) {
     console.log(
-      "Local maven repository already configured in android/build.gradle",
+      "❌ [Android Plugin] Local maven repository already configured in android/build.gradle",
     );
     return buildGradle;
   }
@@ -123,7 +123,6 @@ const addLocalMavenRepo = (buildGradle: string): string => {
       },
     );
 
-    console.log("Added local maven repository to android/build.gradle");
   } else {
     const repositoriesRegex =
       /(repositories\s*\{[\s\S]*?)(\n\s*\}\s*(?=\n\s*\}))/;
@@ -136,11 +135,11 @@ const addLocalMavenRepo = (buildGradle: string): string => {
         },
       );
       console.log(
-        "Added local maven repository to android/build.gradle (fallback method)",
+        "🟦 [Android Plugin] Added local maven repository to android/build.gradle (fallback method)",
       );
     } else {
       console.warn(
-        "Could not find allprojects/repositories block in android/build.gradle",
+        "❌ [Android Plugin] Could not find allprojects/repositories block in android/build.gradle",
       );
     }
   }
@@ -151,8 +150,11 @@ const addLocalMavenRepo = (buildGradle: string): string => {
 const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
   const appId = props?.androidAppId;
   const appUrl = props?.appUrl;
+  console.log("🟦 [Android Plugin] Running")
 
   if (!appId) {
+    console.log("❌ [Android Plugin] No app id found")
+
     return config;
   }
 
@@ -162,21 +164,21 @@ const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
       const projectRoot = config.modRequest.projectRoot;
       const googleServicesPath = path.join(projectRoot, 'google-services.json');
       const androidAppPath = path.join(projectRoot, 'android', 'app', 'google-services.json');
-      
+
       if (fs.existsSync(googleServicesPath)) {
         // Ensure android/app directory exists
         const androidAppDir = path.dirname(androidAppPath);
         if (!fs.existsSync(androidAppDir)) {
           fs.mkdirSync(androidAppDir, { recursive: true });
         }
-        
+
         // Copy the file
         fs.copyFileSync(googleServicesPath, androidAppPath);
-        console.log('✅ Copied google-services.json to android/app/');
+        console.log('🟦 [Android Plugin] Copied google-services.json to android/app/');
       } else {
-        console.warn('⚠️  google-services.json not found in project root');
+        console.warn('❌ [Android Plugin] google-services.json not found in project root');
       }
-      
+
       return config;
     },
   ]);
@@ -190,6 +192,7 @@ const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
       );
     }
     if (!config.modResults.contents.includes('com.google.gms.google-services')) {
+      console.log("🟦 [Android Plugin] Adding google services to app/build.gradle");
       config.modResults.contents = config.modResults.contents.replace(
         /apply plugin: "com.facebook.react"/,
         `apply plugin: "com.facebook.react"
@@ -197,8 +200,9 @@ apply plugin: "com.google.gms.google-services"`
       );
     }
     if (!config.modResults.contents.includes('firebase-core')) {
+      console.log("🟦 [Android Plugin] Adding firebase dependencies to app/build.gradle");
       config.modResults.contents = config.modResults.contents.replace(
-        /dependencies \{/, 
+        /dependencies \{/,
         `dependencies {
     implementation 'com.google.firebase:firebase-core:21.1.1'
     implementation 'com.google.firebase:firebase-messaging:23.4.1'`
@@ -209,8 +213,9 @@ apply plugin: "com.google.gms.google-services"`
 
   config = withProjectBuildGradle(config, (config) => {
     if (!config.modResults.contents.includes('com.google.gms:google-services')) {
+      console.log("🟦 [Android Plugin] Adding google services classpath to build.gradle");
       config.modResults.contents = config.modResults.contents.replace(
-        /dependencies \{/, 
+        /dependencies \{/,
         `dependencies {\n        classpath 'com.google.gms:google-services:4.4.0'`
       );
     }
@@ -220,6 +225,7 @@ apply plugin: "com.google.gms.google-services"`
   config = withAndroidManifest(config, (config) => {
     const androidManifest = config.modResults;
     const application = androidManifest.manifest.application?.[0];
+    console.log("🟦 [Android Plugin] Updating android manifest");
 
     if (!androidManifest.manifest['uses-permission']) {
       androidManifest.manifest['uses-permission'] = [];
@@ -250,6 +256,7 @@ apply plugin: "com.google.gms.google-services"`
         (service: any) => service.$?.['android:name'] === 'expo.modules.vibessdk.Fms'
       );
       if (!existingService) {
+        console.log("🟦 [Android Plugin] Adding vibes sdk and firebase messaging event to app manifest");
         application.service.push({
           $: {
             'android:name': 'expo.modules.vibessdk.Fms',
@@ -268,6 +275,8 @@ apply plugin: "com.google.gms.google-services"`
         (receiver: any) => receiver.$?.['android:name'] === 'expo.modules.vibessdk.VibesPushReceiver'
       );
       if (!existingReceiver) {
+        console.log("🟦 [Android Plugin] Adding vibes push receiver to app manifest");
+
         application.receiver.push({
           $: {
             'android:name': 'expo.modules.vibessdk.VibesPushReceiver',
@@ -280,15 +289,20 @@ apply plugin: "com.google.gms.google-services"`
   });
 
   config = withMainApplication(config, (config) => {
+    console.log("🟦 [Android Plugin] Updating main application");
     const { modResults } = config;
     if (!modResults.contents.includes('FirebaseApp.initializeApp')) {
+      console.log("🟦 [Android Plugin] Adding FirebaseApp.initializeApp to main application");
+
       // Add Firebase import
       if (!modResults.contents.includes('import com.google.firebase.FirebaseApp')) {
+        console.log("🟦 [Android Plugin] Adding FirebaseApp import");
         modResults.contents = modResults.contents.replace(
           /import expo\.modules\.ApplicationLifecycleDispatcher/,
           `import expo.modules.ApplicationLifecycleDispatcher\nimport com.google.firebase.FirebaseApp`
         );
       }
+      console.log("🟦 [Android Plugin] Init FirebaseApp in onCreate");
       // Add Firebase initialization in onCreate
       modResults.contents = modResults.contents.replace(
         /super\.onCreate\(\)/,
@@ -299,16 +313,20 @@ apply plugin: "com.google.gms.google-services"`
   });
 
   config = withMainActivity(config, (config) => {
+    console.log("🟦 [Android Plugin] Updating main activity");
     const { modResults } = config;
     if (!modResults.contents.includes('VibesPushReceiver.handlePushOpened')) {
+      console.log("🟦 [Android Plugin] Adding VibesPushReceiver handling to main activity");
       // Add receiver import
       if (!modResults.contents.includes('import expo.modules.vibessdk.VibesPushReceiver')) {
+        console.log("🟦 [Android Plugin] Adding VibesPushReceiver import");
         modResults.contents = modResults.contents.replace(
           /import expo\.modules\.ReactActivityDelegateWrapper/,
           `import expo\.modules\.ReactActivityDelegateWrapper\nimport expo.modules.vibessdk.VibesPushReceiver`
         );
       }
 
+      console.log("🟦 [Android Plugin] Handle push opened in onCreate");
       modResults.contents = modResults.contents.replace(
         /super\.onCreate\(null\)/,
         `super.onCreate(null)\n    VibesPushReceiver.handlePushOpened(applicationContext, intent)`
@@ -331,10 +349,10 @@ apply plugin: "com.google.gms.google-services"`
         await fs.copy(pluginLibsPath, androidLibsPath, {
           overwrite: true,
         });
-        console.log(`Copied local maven repo directory to ${androidLibsPath}`);
+        console.log(`🟦 [Android Plugin] Copied local maven repo directory to ${androidLibsPath}`);
       } else {
         console.warn(
-          `Local maven repo directory not found at ${pluginLibsPath}`,
+          `❌ [Android Plugin] Local maven repo directory not found at ${pluginLibsPath}`,
         );
       }
 
