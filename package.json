@@ -1,6 +1,6 @@
 {
   "name": "vibes-react-native-expo",
-  "version": "0.3.26",
+  "version": "0.4.1",
   "description": "Expo module for Vibes Android & iOS SDK integration",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -12,7 +12,9 @@
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "open:android": "open -a \"Android Studio\" example/android",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "keywords": [
     "react-native",
@@ -29,15 +31,18 @@
   "homepage": "https://github.com/vibes/vibes-react-native-expo#readme",
   "dependencies": {
     "@types/fs-extra": "^11.0.4",
-    "expo-dev-client": "~4.0.29",
-    "fs-extra": "^11.3.2"
+    "expo-dev-client": "~5.0.20",
+    "fs-extra": "^11.3.2",
+    "expo": "~52.0.49",
+    "react": "18.3.1",
+    "react-native": "0.76.9"
   },
   "devDependencies": {
-    "@types/react": "^18.2.6",
-    "expo": "*",
-    "expo-module-scripts": "^4.1.9",
-    "react": "*",
-    "react-native": "*"
+    "@types/react": "18.3.12",
+    "expo": "52.0.49",
+    "expo-module-scripts": "5.0.8",
+    "react": "18.3.1",
+    "react-native": "0.76.9"
   },
   "peerDependencies": {
     "expo": "*",
