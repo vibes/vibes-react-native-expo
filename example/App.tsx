@@ -1,8 +1,14 @@
-import ExpoVibesSDK from "vibes-react-native-expo";
+import {
+  getSDKVersion,
+  getVibesDeviceInfo,
+  registerDevice,
+  registerPush,
+  requestNotificationPermissions,
+} from "vibes-react-native-expo";
 import { Button, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import React from "react";
-import { PermissionsAndroid, Platform, NativeEventEmitter, NativeModules, DeviceEventEmitter } from "react-native";
+import { Platform, NativeEventEmitter, NativeModules, DeviceEventEmitter } from "react-native";
 
 export default function App() {
   const [sdkVersion, setSdkVersion] = useState<string>("");
@@ -15,11 +21,11 @@ export default function App() {
   const [pushToken, setPushToken] = useState<string>("");
   const [isLoadingRegisterPush, setIsLoadingRegisterPush] = useState(false);
 
-  const onPushReceived = (event) => {
+  const onPushReceived = (event: unknown) => {
     console.log('Push received', event)  
   };
 
-  const onPushOpened = async (event) => {
+  const onPushOpened = async (event: unknown) => {
     console.log('Push opened', event)  
   };
 
@@ -36,7 +42,7 @@ export default function App() {
   const handleGetSDKVersion = async () => {
     try {
       setIsLoadingSdkVersion(true);
-      const version = await ExpoVibesSDK.getSDKVersion();
+      const version = await getSDKVersion();
       setSdkVersion(version);
       console.log("SDK Version:", version);
     } catch (e) {
@@ -50,7 +56,7 @@ export default function App() {
   const handleGetDeviceInfo = async () => {
     try {
       setIsLoadingDeviceInfo(true);
-      const info = await ExpoVibesSDK.getVibesDeviceInfo();
+      const info = await getVibesDeviceInfo();
       setDeviceInfo(info);
       console.log("📱 Device Info:", info);
     } catch (e) {
@@ -64,7 +70,7 @@ export default function App() {
   const handleRegisterDevice = async () => {
     try {
       setIsLoadingRegisterDevice(true);
-      await ExpoVibesSDK.registerDevice();
+      await registerDevice();
       setDeviceStatus("Device registered successfully");
       console.log("✅ Device registered successfully");
       
@@ -79,27 +85,22 @@ export default function App() {
   const handleRegisterPush = async () => {
     try {
       setIsLoadingRegisterPush(true);
-      if (Platform.OS === 'android') {
-        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-      }
-      
-      const deviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
-      if (!deviceInfo.is_registered) {
+
+      const deviceInfo = await getVibesDeviceInfo();
+      if (!deviceInfo.device_id) {
         setPushStatus("Error: Device must be registered first");
         console.log("❌ Error: Device must be registered first");
         return;
       }
 
       console.log("🔔 Requesting notification permissions...");
-      if (Platform.OS === 'ios') {
-        await ExpoVibesSDK.requestNotificationPermissions();
-      }
+      await requestNotificationPermissions();
 
-      await ExpoVibesSDK.registerPush();
+      await registerPush();
       setPushStatus("Push registration successful");
       console.log("✅ Push registration successful");
       
-      const updatedDeviceInfo = await ExpoVibesSDK.getVibesDeviceInfo();
+      const updatedDeviceInfo = await getVibesDeviceInfo();
       setPushToken(updatedDeviceInfo.push_token || "");
       console.log("📱 Push token obtained:", updatedDeviceInfo.push_token);
     } catch (e) {
@@ -133,8 +134,6 @@ export default function App() {
               <Text style={styles.infoTitle}>Device Info:</Text>
               <Text>Device ID: {deviceInfo.device_id || 'N/A'}</Text>
               <Text>Push Token: {deviceInfo.push_token || 'N/A'}</Text>
-              <Text>Is Registered: {deviceInfo.is_registered ? 'Yes' : 'No'}</Text>
-              <Text>Is Push Registered: {deviceInfo.is_push_registered ? 'Yes' : 'No'}</Text>
             </View>
           )}
         </Group>

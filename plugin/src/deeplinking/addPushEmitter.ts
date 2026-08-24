@@ -156,7 +156,8 @@ RCT_EXPORT_MODULE()
 
 + (void)sendPushReceivedEvent:(NSDictionary *)userInfo
 {
-  [emitter sendEventWithName:@"pushReceived" body: userInfo];}
+  [emitter sendEventWithName:@"pushReceived" body: userInfo];
+}
 
 @end
 `;

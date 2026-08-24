@@ -1,12 +1,4 @@
 import {
-  ConfigPlugin,
-  withAppDelegate,
-  withDangerousMod,
-  withXcodeProject,
-  withInfoPlist,
-  withEntitlementsPlist,
-} from "@expo/config-plugins";
-import {
   mergeContents,
   MergeResults,
   removeContents,
@@ -34,14 +26,18 @@ export function removeVibesPushEmitterImport(src: string): MergeResults {
   });
 }
 
-// App launch with notification
+// App launch with notification (cold start → pushOpened via initialNotification)
+// Always wrap as @{@"payload": ...} so JS can consistently read event.payload
 
-const MATCH_APP_LAUNCH_NOTIFICATION_OBJCPP = /-\s*\(BOOL\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didFinishLaunchingWithOptions:\s*\(NSDictionary\s*\*\s*\)\s*\w+/g;
-const APP_LAUNCH_NOTIFICATION_OBJCPP = ` [[UNUserNotificationCenter currentNotificationCenter] setDelegate: self];
+const MATCH_APP_LAUNCH_NOTIFICATION_OBJCPP =
+  /-\s*\(BOOL\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didFinishLaunchingWithOptions:\s*\(NSDictionary\s*\*\s*\)\s*\w+/g;
+
+/** Cold-start: tap notification to launch a killed app */
+export const APP_LAUNCH_NOTIFICATION_OBJCPP = ` [[UNUserNotificationCenter currentNotificationCenter] setDelegate: self];
   if ([launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey]) {
     NSDictionary * payload = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    [VibesPushEmitter setInitialNotification: payload];
-  }`
+    [VibesPushEmitter setInitialNotification: @{@"payload": payload}];
+  }`;
 
 export function addAppLaunchNotificationObjC(src: string): MergeResults {
   return mergeContents({
@@ -53,12 +49,6 @@ export function addAppLaunchNotificationObjC(src: string): MergeResults {
     comment: "//",
   });
 }
-// export const getAppLaunchNotificationSwift = (projectName: string) => `
-//   UNUserNotificationCenter.current().delegate = self
-//   if let payload = launchOptions?[UIApplication.LaunchOptionsKey.remoteNotification] as? [String: Any] {
-//       VibesPushEmitter.setInitialNotification(payload)
-//   }
-// `
 
 // UNUserNotificationCenterDelegate
 const MATCH_UNUSER_NOTIFICATION_DELEGATE = /@implementation AppDelegate/;
@@ -66,7 +56,6 @@ const UNUSER_NOTIFICATION_DELEGATE = `#import <UserNotifications/UNUserNotificat
 
 @interface AppDelegate()<UNUserNotificationCenterDelegate>
 @end`;
-
 
 export function addUNUserNotificationDelegate(src: string): MergeResults {
   return mergeContents({
@@ -79,15 +68,13 @@ export function addUNUserNotificationDelegate(src: string): MergeResults {
   });
 }
 
-
-// Notification received
+// Background/inactive data push received
 const MATCH_NOTIFICATION_RECEIVED_METHOD_OBJCPP =
   /-\s*\(void\)\s*application:\s*\(UIApplication\s*\*\s*\)\s*\w+\s+didReceiveRemoteNotification:\s*\(NSDictionary\s*\*\s*\)\s*\w+/g;
-const NOTIFICATION_RECEIVED_OBJCPP = `[VibesPushEmitter sendPushReceivedEvent: userInfo];`;
 
-// export const MATCH_NOTIFICATION_RECEIVED_METHOD_SWIFT =
-//   /\bfunc\s+application\(\s*_\s+application:\s*UIApplication,\s*didReceiveRemoteNotification\s+deviceToken:\s*Data\s*\)/g;
-// export const NOTIFICATION_RECEIVED_SWIFT = ``
+/** Background/data push → pushReceived (wrapped payload) */
+export const NOTIFICATION_RECEIVED_OBJCPP = `NSDictionary *vibesPayload = @{@"payload": userInfo};
+  [VibesPushEmitter sendPushReceivedEvent: vibesPayload];`;
 
 export function addPushEmitterNotificationReceived(src: string): MergeResults {
   return mergeContents({
@@ -107,33 +94,68 @@ export function removePushEmitterNotificationReceived(src: string): MergeResults
   });
 }
 
-// Notification response received
+// Notification response received (user tapped while backgrounded)
 
-const MATCH_NOTIFICATION_RESPONSE_RECEIVED_METHOD_OBJCPP = /-\s*\(void\)\s*userNotificationCenter:\s*\(UNUserNotificationCenter\s*\*\s*\)\s*\w+\s+didReceiveNotificationResponse:\s*\(UNNotificationResponse\s*\*\s*\)\s*\w+/g;
-const NOTIFICATION_RESPONSE_RECEIVED_OBJCPP = `
--(void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler {
-  NSDictionary *userInfo = [[[[response notification] request] content] userInfo];
+const MATCH_NOTIFICATION_RESPONSE_RECEIVED_METHOD_OBJCPP =
+  /-\s*\(void\)\s*userNotificationCenter:\s*\(UNUserNotificationCenter\s*\*\s*\)\s*\w+\s+didReceiveNotificationResponse:\s*\(UNNotificationResponse\s*\*\s*\)\s*\w+/g;
+
+/** Body injected into an existing didReceiveNotificationResponse method */
+export const NOTIFICATION_RESPONSE_BODY_OBJCPP = `NSDictionary *userInfo = [[[[response notification] request] content] userInfo];
   NSDictionary *payload = @{@"payload": userInfo};
   [VibesPushEmitter sendPushOpenedEvent: payload];
+  completionHandler();`;
+
+/** Full method when AppDelegate does not already declare the response handler */
+export const NOTIFICATION_RESPONSE_RECEIVED_OBJCPP = `
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
+  ${NOTIFICATION_RESPONSE_BODY_OBJCPP}
 }
 `;
 
-export function addPushEmitterNotificationResponseReceived(src: string): MergeResults {
+export function addPushEmitterNotificationResponseReceived(
+  src: string,
+): MergeResults {
   return mergeContents({
     tag: "vibes-push-emitter-notification-response-received",
     src,
-    newSrc: NOTIFICATION_RESPONSE_RECEIVED_OBJCPP,
+    newSrc: NOTIFICATION_RESPONSE_BODY_OBJCPP,
     anchor: MATCH_NOTIFICATION_RESPONSE_RECEIVED_METHOD_OBJCPP,
     offset: 2,
     comment: "//",
   });
 }
 
-export function addPushEmitterNotificationResponseReceivedNew(src: string): MergeResults {
+export function addPushEmitterNotificationResponseReceivedNew(
+  src: string,
+): MergeResults {
   return mergeContents({
     tag: "vibes-push-emitter-notification-response-received-new",
     src,
     newSrc: NOTIFICATION_RESPONSE_RECEIVED_OBJCPP,
+    anchor: /@end/,
+    offset: 0,
+    comment: "//",
+  });
+}
+
+/** Foreground push → pushReceived + present banner/sound/badge */
+export const WILL_PRESENT_NOTIFICATION_OBJCPP = `
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center
+      willPresentNotification:(UNNotification *)notification
+        withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+{
+  NSDictionary *userInfo = [[[notification request] content] userInfo];
+  NSDictionary *payload = @{@"payload": userInfo};
+  [VibesPushEmitter sendPushReceivedEvent: payload];
+  completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+}
+`;
+
+export function addPushEmitterWillPresentNotification(src: string): MergeResults {
+  return mergeContents({
+    tag: "vibes-push-emitter-will-present-notification",
+    src,
+    newSrc: WILL_PRESENT_NOTIFICATION_OBJCPP,
     anchor: /@end/,
     offset: 0,
     comment: "//",

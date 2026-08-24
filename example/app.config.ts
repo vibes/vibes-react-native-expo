@@ -1,4 +1,17 @@
 import { ExpoConfig } from "expo/config";
+import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+const androidAppId = process.env.ANDROID_APP_ID || "[YOUR_ANDROID_APP_ID]";
+const iosAppId = process.env.IOS_APP_ID || "[YOUR_IOS_APP_ID]";
+const androidPackage =
+  process.env.ANDROID_PACKAGE_NAME || "com.vibes.push.test.rn";
+const iosBundleId =
+  process.env.IOS_BUNDLE_IDENTIFIER || "com.vibes.push.test.rn";
+const appUrl = process.env.APP_URL || "[YOUR_API_URL]";
+const vibesAppEnv = process.env.VIBES_APP_ENV || "[YOUR_APP_ENV]";
 
 const config: ExpoConfig = {
   name: "expo-vibes-sdk-example",
@@ -14,49 +27,34 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.vibes.push.test.rn",
+    bundleIdentifier: iosBundleId,
     infoPlist: {
-      ITSAppUsesNonExemptEncryption: false
-    }
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
     },
-    package: "com.vibes.push.test.rn",
+    package: androidPackage,
     googleServicesFile: "./google-services.json",
-
   },
   plugins: [
     [
       "vibes-react-native-expo",
       {
-        androidAppId: "3344c960-f53b-43d5-9b3a-2b4498703ef3",   
-        appUrl: "https://public-api-uatus0.vibescm.com/mobile_apps",
-        iosAppId: "3344c960-f53b-43d5-9b3a-2b4498703ef3",
-        vibesAppEnv: 'UAT',
-        apsEnvironment: 'development',
+        androidAppId,
+        appUrl,
+        iosAppId,
+        vibesAppEnv,
+        apsEnvironment: "development",
       },
     ],
-    // [
-    //   "expo-build-properties",
-    //   {
-    //     ios: {
-    //       useFrameworks: "static"
-    //     }
-    //   }
-    // ]
   ],
   web: {
     favicon: "./assets/favicon.png",
   },
-  extra: {
-    eas: {
-      projectId: "7bdea1b1-3b3b-47c4-a485-114c5099926b"
-    }
-  },
-  owner: "simoninho",
 };
 
 export default config;

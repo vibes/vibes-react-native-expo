@@ -12,7 +12,39 @@ import type { ConfigPluginProps } from "./types";
 import * as fs from "fs-extra";
 import * as path from "path";
 
-// Add manifest placeholders to build.gradle
+export const RN_APP_ID_META = "com.vibes.push.rn.plugin.appId";
+export const RN_API_URL_META = "com.vibes.push.rn.plugin.apiUrl";
+export const RN_PUSH_RECEIVER =
+  "com.vibes.push.rn.plugin.notifications.VibesPushReceiver";
+export const RN_FMS = "com.vibes.push.rn.plugin.notifications.Fms";
+const LEGACY_EXPO_FMS = "expo.modules.vibessdk.Fms";
+const LEGACY_EXPO_PUSH_RECEIVER = "expo.modules.vibessdk.VibesPushReceiver";
+
+/** Wire MainActivity to RN VibesPushReceiver.handlePushOpened (cold/background tap). */
+export function wireMainActivityPushOpened(contents: string): string {
+  contents = contents.replace(
+    /import expo\.modules\.vibessdk\.VibesPushReceiver/g,
+    `import ${RN_PUSH_RECEIVER}`,
+  );
+
+  if (contents.includes("VibesPushReceiver.handlePushOpened")) {
+    return contents;
+  }
+
+  if (!contents.includes(`import ${RN_PUSH_RECEIVER}`)) {
+    contents = contents.replace(
+      /import expo\.modules\.ReactActivityDelegateWrapper/,
+      `import expo.modules.ReactActivityDelegateWrapper\nimport ${RN_PUSH_RECEIVER}`,
+    );
+  }
+
+  return contents.replace(
+    /super\.onCreate\(null\)/,
+    `super.onCreate(null)\n    VibesPushReceiver.handlePushOpened(applicationContext, intent)`,
+  );
+}
+
+// Add manifest placeholders to build.gradle (RN sample uses vibesApiUrl)
 const addPlaceholders = (
   buildGradle: string,
   appId: string,
@@ -40,8 +72,8 @@ const addPlaceholders = (
               updatedPlaceholders += `, vibesAppId:"${appId}"`;
             }
 
-            if (appUrl && !placeholders.includes("vibesAppUrl")) {
-              updatedPlaceholders += `, vibesAppUrl:"${appUrl}"`;
+            if (appUrl && !placeholders.includes("vibesApiUrl")) {
+              updatedPlaceholders += `, vibesApiUrl:"${appUrl}"`;
             }
 
             return `manifestPlaceholders = [${updatedPlaceholders}]`;
@@ -50,7 +82,7 @@ const addPlaceholders = (
       } else {
         let placeholders = `vibesAppId:"${appId}"`;
         if (appUrl) {
-          placeholders += `, vibesAppUrl:"${appUrl}"`;
+          placeholders += `, vibesApiUrl:"${appUrl}"`;
         }
 
         buildGradle = buildGradle.replace(
@@ -64,20 +96,28 @@ const addPlaceholders = (
   return buildGradle;
 };
 
-// Add meta-data tags to AndroidManifest.xml
+// Add meta-data tags to AndroidManifest.xml for vibes-react-native
 const addMetaTags = (application: any, includeCustomUrl?: boolean): void => {
   if (!application["meta-data"]) {
     application["meta-data"] = [];
   }
 
+  // Remove legacy Expo meta-data keys if present from earlier plugin versions
+  application["meta-data"] = application["meta-data"].filter(
+    (metaData: any) => {
+      const name = metaData.$?.["android:name"];
+      return name !== "vibes_app_id" && name !== "vibes_api_url";
+    },
+  );
+
   const existingAppIdMetaData = application["meta-data"].find(
-    (metaData: any) => metaData.$?.["android:name"] === "vibes_app_id",
+    (metaData: any) => metaData.$?.["android:name"] === RN_APP_ID_META,
   );
 
   if (!existingAppIdMetaData) {
     application["meta-data"].push({
       $: {
-        "android:name": "vibes_app_id",
+        "android:name": RN_APP_ID_META,
         "android:value": "${vibesAppId}",
       },
     });
@@ -85,21 +125,39 @@ const addMetaTags = (application: any, includeCustomUrl?: boolean): void => {
 
   if (includeCustomUrl) {
     const existingApiUrlMetaData = application["meta-data"].find(
-      (metaData: any) => metaData.$?.["android:name"] === "vibes_api_url",
+      (metaData: any) => metaData.$?.["android:name"] === RN_API_URL_META,
     );
 
     if (!existingApiUrlMetaData) {
       application["meta-data"].push({
         $: {
-          "android:name": "vibes_api_url",
-          "android:value": "${vibesAppUrl}",
+          "android:name": RN_API_URL_META,
+          "android:value": "${vibesApiUrl}",
         },
       });
     }
   }
 };
 
+/** Rewrite or drop legacy Expo FMS/receiver names so FCM can resolve RN classes. */
+const migrateLegacyExpoPushComponents = (application: any): void => {
+  if (application.service) {
+    for (const service of application.service) {
+      if (service.$?.["android:name"] === LEGACY_EXPO_FMS) {
+        service.$["android:name"] = RN_FMS;
+      }
+    }
+  }
+  if (application.receiver) {
+    for (const receiver of application.receiver) {
+      if (receiver.$?.["android:name"] === LEGACY_EXPO_PUSH_RECEIVER) {
+        receiver.$["android:name"] = RN_PUSH_RECEIVER;
+      }
+    }
+  }
+};
 
+/** Copy vendored AAR into the app when plugin/libs exists. */
 const addLocalMavenRepo = (buildGradle: string): string => {
   if (buildGradle.includes("./libs/maven")) {
     console.log(
@@ -122,7 +180,6 @@ const addLocalMavenRepo = (buildGradle: string): string => {
         return `${before}${repositories}\n${mavenRepoSnippet}${after}`;
       },
     );
-
   } else {
     const repositoriesRegex =
       /(repositories\s*\{[\s\S]*?)(\n\s*\}\s*(?=\n\s*\}))/;
@@ -150,33 +207,40 @@ const addLocalMavenRepo = (buildGradle: string): string => {
 const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
   const appId = props?.androidAppId;
   const appUrl = props?.appUrl;
-  console.log("🟦 [Android Plugin] Running")
+  console.log("🟦 [Android Plugin] Running");
 
   if (!appId) {
-    console.log("❌ [Android Plugin] No app id found")
+    console.log("❌ [Android Plugin] No app id found");
 
     return config;
   }
 
   config = withDangerousMod(config, [
-    'android',
+    "android",
     async (config) => {
       const projectRoot = config.modRequest.projectRoot;
-      const googleServicesPath = path.join(projectRoot, 'google-services.json');
-      const androidAppPath = path.join(projectRoot, 'android', 'app', 'google-services.json');
+      const googleServicesPath = path.join(projectRoot, "google-services.json");
+      const androidAppPath = path.join(
+        projectRoot,
+        "android",
+        "app",
+        "google-services.json",
+      );
 
       if (fs.existsSync(googleServicesPath)) {
-        // Ensure android/app directory exists
         const androidAppDir = path.dirname(androidAppPath);
         if (!fs.existsSync(androidAppDir)) {
           fs.mkdirSync(androidAppDir, { recursive: true });
         }
 
-        // Copy the file
         fs.copyFileSync(googleServicesPath, androidAppPath);
-        console.log('🟦 [Android Plugin] Copied google-services.json to android/app/');
+        console.log(
+          "🟦 [Android Plugin] Copied google-services.json to android/app/",
+        );
       } else {
-        console.warn('❌ [Android Plugin] google-services.json not found in project root');
+        console.warn(
+          "❌ [Android Plugin] google-services.json not found in project root",
+        );
       }
 
       return config;
@@ -191,32 +255,38 @@ const withAndroidPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
         appUrl,
       );
     }
-    if (!config.modResults.contents.includes('com.google.gms.google-services')) {
-      console.log("🟦 [Android Plugin] Adding google services to app/build.gradle");
+    if (!config.modResults.contents.includes("com.google.gms.google-services")) {
+      console.log(
+        "🟦 [Android Plugin] Adding google services to app/build.gradle",
+      );
       config.modResults.contents = config.modResults.contents.replace(
         /apply plugin: "com.facebook.react"/,
         `apply plugin: "com.facebook.react"
-apply plugin: "com.google.gms.google-services"`
+apply plugin: "com.google.gms.google-services"`,
       );
     }
-    if (!config.modResults.contents.includes('firebase-core')) {
-      console.log("🟦 [Android Plugin] Adding firebase dependencies to app/build.gradle");
+    if (!config.modResults.contents.includes("firebase-core")) {
+      console.log(
+        "🟦 [Android Plugin] Adding firebase dependencies to app/build.gradle",
+      );
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies \{/,
         `dependencies {
     implementation 'com.google.firebase:firebase-core:21.1.1'
-    implementation 'com.google.firebase:firebase-messaging:23.4.1'`
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'`,
       );
     }
     return config;
   });
 
   config = withProjectBuildGradle(config, (config) => {
-    if (!config.modResults.contents.includes('com.google.gms:google-services')) {
-      console.log("🟦 [Android Plugin] Adding google services classpath to build.gradle");
+    if (!config.modResults.contents.includes("com.google.gms:google-services")) {
+      console.log(
+        "🟦 [Android Plugin] Adding google services classpath to build.gradle",
+      );
       config.modResults.contents = config.modResults.contents.replace(
         /dependencies \{/,
-        `dependencies {\n        classpath 'com.google.gms:google-services:4.4.0'`
+        `dependencies {\n        classpath 'com.google.gms:google-services:4.4.0'`,
       );
     }
     return config;
@@ -227,63 +297,33 @@ apply plugin: "com.google.gms.google-services"`
     const application = androidManifest.manifest.application?.[0];
     console.log("🟦 [Android Plugin] Updating android manifest");
 
-    if (!androidManifest.manifest['uses-permission']) {
-      androidManifest.manifest['uses-permission'] = [];
+    if (!androidManifest.manifest["uses-permission"]) {
+      androidManifest.manifest["uses-permission"] = [];
     }
     const pushPermissions = [
-      'android.permission.POST_NOTIFICATIONS',
-      'android.permission.WAKE_LOCK',
-      'com.google.android.c2dm.permission.RECEIVE'
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.WAKE_LOCK",
+      "com.google.android.c2dm.permission.RECEIVE",
     ];
-    pushPermissions.forEach(permission => {
-      const existingPermission = androidManifest.manifest['uses-permission']?.find(
-        (perm: any) => perm.$?.['android:name'] === permission
-      );
-      if (!existingPermission && androidManifest.manifest['uses-permission']) {
-        androidManifest.manifest['uses-permission'].push({
-          $: { 'android:name': permission }
+    pushPermissions.forEach((permission) => {
+      const existingPermission =
+        androidManifest.manifest["uses-permission"]?.find(
+          (perm: any) => perm.$?.["android:name"] === permission,
+        );
+      if (
+        !existingPermission &&
+        androidManifest.manifest["uses-permission"]
+      ) {
+        androidManifest.manifest["uses-permission"].push({
+          $: { "android:name": permission },
         });
       }
     });
 
     if (application) {
       addMetaTags(application, !!appUrl);
-
-      if (!application.service) {
-        application.service = [];
-      }
-      const existingService = application.service.find(
-        (service: any) => service.$?.['android:name'] === 'expo.modules.vibessdk.Fms'
-      );
-      if (!existingService) {
-        console.log("🟦 [Android Plugin] Adding vibes sdk and firebase messaging event to app manifest");
-        application.service.push({
-          $: {
-            'android:name': 'expo.modules.vibessdk.Fms',
-            'android:exported': 'false'
-          },
-          'intent-filter': [{
-            action: [{ $: { 'android:name': 'com.google.firebase.MESSAGING_EVENT' } }]
-          }]
-        });
-      }
-
-      if (!application.receiver) {
-        application.receiver = [];
-      }
-      const existingReceiver = application.receiver.find(
-        (receiver: any) => receiver.$?.['android:name'] === 'expo.modules.vibessdk.VibesPushReceiver'
-      );
-      if (!existingReceiver) {
-        console.log("🟦 [Android Plugin] Adding vibes push receiver to app manifest");
-
-        application.receiver.push({
-          $: {
-            'android:name': 'expo.modules.vibessdk.VibesPushReceiver',
-            'android:exported': 'false'
-          }
-        });
-      }
+      // Prefer RN FMS/receiver FQCNs; rewrite any leftover legacy Expo names
+      migrateLegacyExpoPushComponents(application);
     }
     return config;
   });
@@ -291,22 +331,24 @@ apply plugin: "com.google.gms.google-services"`
   config = withMainApplication(config, (config) => {
     console.log("🟦 [Android Plugin] Updating main application");
     const { modResults } = config;
-    if (!modResults.contents.includes('FirebaseApp.initializeApp')) {
-      console.log("🟦 [Android Plugin] Adding FirebaseApp.initializeApp to main application");
+    if (!modResults.contents.includes("FirebaseApp.initializeApp")) {
+      console.log(
+        "🟦 [Android Plugin] Adding FirebaseApp.initializeApp to main application",
+      );
 
-      // Add Firebase import
-      if (!modResults.contents.includes('import com.google.firebase.FirebaseApp')) {
+      if (
+        !modResults.contents.includes("import com.google.firebase.FirebaseApp")
+      ) {
         console.log("🟦 [Android Plugin] Adding FirebaseApp import");
         modResults.contents = modResults.contents.replace(
           /import expo\.modules\.ApplicationLifecycleDispatcher/,
-          `import expo.modules.ApplicationLifecycleDispatcher\nimport com.google.firebase.FirebaseApp`
+          `import expo.modules.ApplicationLifecycleDispatcher\nimport com.google.firebase.FirebaseApp`,
         );
       }
       console.log("🟦 [Android Plugin] Init FirebaseApp in onCreate");
-      // Add Firebase initialization in onCreate
       modResults.contents = modResults.contents.replace(
         /super\.onCreate\(\)/,
-        `super.onCreate()\n    // Initialize Firebase\n    FirebaseApp.initializeApp(this)`
+        `super.onCreate()\n    // Initialize Firebase\n    FirebaseApp.initializeApp(this)`,
       );
     }
     return config;
@@ -315,44 +357,29 @@ apply plugin: "com.google.gms.google-services"`
   config = withMainActivity(config, (config) => {
     console.log("🟦 [Android Plugin] Updating main activity");
     const { modResults } = config;
-    if (!modResults.contents.includes('VibesPushReceiver.handlePushOpened')) {
-      console.log("🟦 [Android Plugin] Adding VibesPushReceiver handling to main activity");
-      // Add receiver import
-      if (!modResults.contents.includes('import expo.modules.vibessdk.VibesPushReceiver')) {
-        console.log("🟦 [Android Plugin] Adding VibesPushReceiver import");
-        modResults.contents = modResults.contents.replace(
-          /import expo\.modules\.ReactActivityDelegateWrapper/,
-          `import expo\.modules\.ReactActivityDelegateWrapper\nimport expo.modules.vibessdk.VibesPushReceiver`
-        );
-      }
-
-      console.log("🟦 [Android Plugin] Handle push opened in onCreate");
-      modResults.contents = modResults.contents.replace(
-        /super\.onCreate\(null\)/,
-        `super.onCreate(null)\n    VibesPushReceiver.handlePushOpened(applicationContext, intent)`
-      );
-    }
+    modResults.contents = wireMainActivityPushOpened(modResults.contents);
     return config;
   });
 
+  // Copy vendored AAR under plugin/libs into the app when present.
   config = withDangerousMod(config, [
     "android",
     async (config) => {
       const projectRoot = config.modRequest.projectRoot;
       const androidProjectRoot = path.join(projectRoot, "android");
-
       const pluginLibsPath = path.join(__dirname, "..", "libs");
-
       const androidLibsPath = path.join(androidProjectRoot, "libs");
 
       if (await fs.pathExists(pluginLibsPath)) {
         await fs.copy(pluginLibsPath, androidLibsPath, {
           overwrite: true,
         });
-        console.log(`🟦 [Android Plugin] Copied local maven repo directory to ${androidLibsPath}`);
+        console.log(
+          `🟦 [Android Plugin] Copied local maven repo directory to ${androidLibsPath}`,
+        );
       } else {
-        console.warn(
-          `❌ [Android Plugin] Local maven repo directory not found at ${pluginLibsPath}`,
+        console.log(
+          "🟦 [Android Plugin] No plugin/libs maven repo found",
         );
       }
 
@@ -361,7 +388,11 @@ apply plugin: "com.google.gms.google-services"`
   ]);
 
   config = withProjectBuildGradle(config, (config) => {
-    if (config.modResults.language === "groovy") {
+    const pluginLibsPath = path.join(__dirname, "..", "libs");
+    if (
+      config.modResults.language === "groovy" &&
+      fs.existsSync(pluginLibsPath)
+    ) {
       config.modResults.contents = addLocalMavenRepo(
         config.modResults.contents,
       );
@@ -371,7 +402,5 @@ apply plugin: "com.google.gms.google-services"`
 
   return config;
 };
-
-
 
 export default withAndroidPlugin;

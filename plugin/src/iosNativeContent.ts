@@ -84,8 +84,8 @@ export const getBridgeImplementationObjC = (
   [Vibes.shared setPushTokenFromData:deviceToken];
   NSLog(@"🔑 [PUSH_TOKEN] Device token set in Vibes SDK");
   
-  // Store token in UserDefaults so ExpoVibesSDKModule can retrieve it
-  [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"ExpoVibesSDK_LastDeviceToken"];
+  // Store device token for later retrieval by the Vibes SDK bridge
+  [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"VibesRN_LastDeviceToken"];
   NSLog(@"🔑 [PUSH_TOKEN] Device token stored in UserDefaults: %@", token);
   
   // NOTE: registerPush() should be called manually by the app, not automatically

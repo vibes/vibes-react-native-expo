@@ -6,7 +6,7 @@
 
   <groupId>com.vibes</groupId>
   <artifactId>vibes-android-push-sdk</artifactId>
-  <version>4.12.5</version>
+  <version>5.0.0</version>
   <packaging>aar</packaging>
 
   <dependencies>
