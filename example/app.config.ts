@@ -10,8 +10,7 @@ const androidPackage =
   process.env.ANDROID_PACKAGE_NAME || "com.vibes.push.test.rn";
 const iosBundleId =
   process.env.IOS_BUNDLE_IDENTIFIER || "com.vibes.push.test.rn";
-const appUrl = process.env.APP_URL || "[YOUR_API_URL]";
-const vibesAppEnv = process.env.VIBES_APP_ENV || "[YOUR_APP_ENV]";
+const appUrl = process.env.APP_URL || "https://public-api.vibescm.com/mobile_apps";
 
 const config: ExpoConfig = {
   name: "expo-vibes-sdk-example",
@@ -47,7 +46,6 @@ const config: ExpoConfig = {
         androidAppId,
         appUrl,
         iosAppId,
-        vibesAppEnv,
         apsEnvironment: "development",
       },
     ],

@@ -16,7 +16,7 @@
     "expo-dev-client": "~5.0.20",
     "react": "18.3.1",
     "react-native": "0.76.9",
-    "vibes-react-native": "5.0.0",
+    "vibes-react-native": "5.0.1",
     "vibes-react-native-expo": "file:.."
   },
   "devDependencies": {

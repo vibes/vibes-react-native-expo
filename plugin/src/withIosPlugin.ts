@@ -35,6 +35,48 @@ import type { ConfigPluginProps } from "./types";
 import { getMajorSdkVersion } from "./utils";
 import { addAppDelegateDeepLinking, addVibesPushEmitter } from "./deeplinking";
 
+/** Resolve a git tag for VibesPush when CocoaPods trunk is unavailable. */
+function resolveVibesPushGitTag(startDir: string): string | null {
+  let searchDir = startDir;
+  for (let i = 0; i < 8; i++) {
+    const candidates = [
+      path.join(searchDir, "node_modules", "vibes-react-native", "package.json"),
+      path.join(
+        searchDir,
+        "node_modules",
+        "vibes-react-native-expo",
+        "package.json",
+      ),
+    ];
+    for (const candidate of candidates) {
+      if (!fs.existsSync(candidate)) {
+        continue;
+      }
+      try {
+        const pkg = JSON.parse(fs.readFileSync(candidate, "utf8")) as {
+          version?: string;
+        };
+        if (pkg.version) {
+          return pkg.version;
+        }
+      } catch {
+        // ignore unreadable package metadata
+      }
+    }
+    const parent = path.dirname(searchDir);
+    if (parent === searchDir) {
+      break;
+    }
+    searchDir = parent;
+  }
+  try {
+    const pkg = require("../../../package.json") as { version?: string };
+    return pkg.version ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Add import for VibesPush
 export function addVibesPackageImport(src: string): MergeResults {
   return mergeContents({
@@ -428,6 +470,73 @@ const withIosPlugin: ConfigPlugin<ConfigPluginProps> = (config, props) => {
 
     return c;
   });
+
+  // Point CocoaPods at a local VibesPush checkout when one sits above the app (survives prebuild).
+  config = withDangerousMod(config, [
+    "ios",
+    async (config) => {
+      const iosRoot = config.modRequest.platformProjectRoot;
+      const podfilePath = path.join(iosRoot, "Podfile");
+      if (!fs.existsSync(podfilePath)) {
+        return config;
+      }
+
+      let searchDir = iosRoot;
+      let localIosSdk: string | null = null;
+      for (let i = 0; i < 6; i++) {
+        const candidate = path.join(searchDir, "packages", "ios");
+        if (fs.existsSync(path.join(candidate, "VibesPush.podspec"))) {
+          localIosSdk = candidate;
+          break;
+        }
+        const parent = path.dirname(searchDir);
+        if (parent === searchDir) {
+          break;
+        }
+        searchDir = parent;
+      }
+      let podfile = fs.readFileSync(podfilePath, "utf8");
+      if (
+        podfile.includes("pod 'VibesPush', :path") ||
+        podfile.includes("pod 'VibesPush', :git")
+      ) {
+        return config;
+      }
+
+      let marker: string | null = null;
+      let logMessage: string | null = null;
+      if (localIosSdk) {
+        let rel = path.relative(iosRoot, localIosSdk);
+        if (!rel.startsWith(".")) {
+          rel = `./${rel}`;
+        }
+        marker =
+          "  # Local monorepo iOS SDK (overrides CocoaPods versioned VibesPush)\n" +
+          `  pod 'VibesPush', :path => '${rel}'\n\n`;
+        logMessage = "🔧 [iOS Plugin] Wired local monorepo VibesPush into Podfile";
+      } else {
+        const tag = resolveVibesPushGitTag(iosRoot);
+        if (tag) {
+          marker =
+            "  # VibesPush from git (CocoaPods trunk may not have this version)\n" +
+            `  pod 'VibesPush', :git => 'https://github.com/vibes/push-sdk-ios.git', :tag => '${tag}'\n\n`;
+          logMessage = "🔧 [iOS Plugin] Wired VibesPush from git into Podfile";
+        }
+      }
+
+      if (marker && podfile.includes("post_install do |installer|")) {
+        podfile = podfile.replace(
+          "  post_install do |installer|",
+          `${marker}  post_install do |installer|`,
+        );
+        fs.writeFileSync(podfilePath, podfile);
+        if (logMessage) {
+          console.log(logMessage);
+        }
+      }
+      return config;
+    },
+  ]);
 
   return config;
 };
